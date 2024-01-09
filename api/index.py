@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Annotated, Optional
+from typing import Annotated, List, Literal, Optional
 from fastapi import Depends, FastAPI
 import uvicorn
 import os
@@ -12,7 +12,7 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env.local")
+    model_config = SettingsConfigDict(env_file=".env")
     openai_api_key: Optional[str] = None
 
 
@@ -21,22 +21,25 @@ def get_settings():
     return Settings()
 
 
-# print environment variables
-print(os.environ)
-# print the settings
-print(get_settings())
-
 app = FastAPI()
+
+
+class TranscriptLine(BaseModel):
+    """A line of the transcript"""
+
+    # speaker is one of narrator, collin, or allison
+    speaker: Literal["narrator", "collin", "allison"]
+    text: str
 
 
 class Transcript(BaseModel):
     """The transcript of the podcast episode"""
 
-    content: str
+    transcript_lines: List[TranscriptLine]
 
 
 @app.get("/api/python")
-def hello_world(settings: Annotated[Settings, Depends(get_settings)]):
+def hello_world(settings: Annotated[Settings, Depends(get_settings)]) -> Transcript:
     # print the environment
     print(os.environ)
 
@@ -45,8 +48,8 @@ def hello_world(settings: Annotated[Settings, Depends(get_settings)]):
         prompt_template_str="Generate a fake podcast transcript",
         verbose=True,
     )
-    output = program()
-    return {"message": "Hello World"}
+    output: Transcript = program()  # type: ignore
+    return output
 
 
 def main():
