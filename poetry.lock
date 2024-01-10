@@ -658,7 +658,7 @@ files = [
 name = "iniconfig"
 version = "2.0.0"
 description = "brain-dead simple config-ini parsing"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1045,7 +1045,7 @@ xml = ["lxml (>=4.8.0)"]
 name = "pluggy"
 version = "1.3.0"
 description = "plugin and hook calling mechanisms for python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -1227,7 +1227,7 @@ files = [
 name = "pytest"
 version = "7.4.4"
 description = "pytest: simple powerful testing with Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1924,4 +1924,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "bc32fa74c638b05eb2eba933607796000e05acf06c4d629e1b3b5e79e211f4a3"
+content-hash = "3c9572ae2f64de5ceace696068c105f1f11eac712e8672939ca25e2ce59ab0ca"

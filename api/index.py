@@ -52,9 +52,12 @@ async def generate_episode(article_text: str):
 
 
 async def generate_transcript_body(article_text: str):
+    from llama_index.llms import OpenAI
+
     program = OpenAIPydanticProgram.from_defaults(
         output_cls=Transcript,  # type: ignore
-        prompt_template_str="""You are a podcast writer. Convert blog posts into NPR-style podcast transcripts with 2 speakers: Rachel and Jack. YOU ONLY OUTPUT VALID JSON. Use the given format to extract information from the following input: {text}""",
+        llm=OpenAI(model="gpt-4-1106-preview"),
+        prompt_template_str="""You are a highly skilled podcast writer specializing in transforming blog posts into engaging NPR-style conversational podcast transcripts. Your task is to create a dynamic dialogue between two speakers, Collin and Allison. They will be discussing the content of the provided blog posts in a lively, informative manner. The conversation should mimic the natural flow of a professional podcast, with each speaker offering insights, asking questions, and elaborating on the topics presented. Your output must adhere strictly to a JSON format, ensuring each line of dialogue is correctly attributed to either Collin or Allison. Please use the following JSON structure to organize the conversation, making it easy to parse and understand. Here's the input you need to work with: {text}. Remember, the focus is on creating a natural, NPR-style conversation that both informs and engages the listener, while maintaining impeccable JSON formatting.""",
         verbose=True,
     )
     output: Transcript = await program.acall(text=article_text)  # type: ignore
@@ -68,14 +71,13 @@ async def do_tts_openai(line: str, voice: OpenAIVoiceOption):
 
     response = client.audio.speech.create(model="tts-1", input=line, voice=voice)
     result = await response.aread()
-    print(result)
     return result
 
 
 def get_voice_for_speaker(speaker: Speaker) -> OpenAIVoiceOption:
     speaker_to_voice = {
-        "narrator": "onyx",
-        "collin": "alloy",
+        "narrator": "alloy",
+        "collin": "onyx",
         "allison": "nova",
     }
     # return the voice. give a default
@@ -120,7 +122,8 @@ def hello_world(settings: Annotated[Settings, Depends(get_settings)]):
 @app.post("/api/episode")
 async def episode_create(article_text: str):
     # generate the episode
-    return await generate_episode(article_text)
+    await generate_episode(article_text)
+    return {"message": "episode created"}
 
 
 def main():
