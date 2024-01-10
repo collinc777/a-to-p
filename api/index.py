@@ -1,16 +1,14 @@
 from functools import lru_cache
 from typing import Annotated, List, Literal, Optional
 from fastapi import Depends, FastAPI
-from mypy_boto3_polly import PollyClient
-from mypy_boto3_polly.literals import VoiceIdType
 import uvicorn
-import os
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
 load_dotenv()
+OpenAIVoiceOption = Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 
 
 class Settings(BaseSettings):
@@ -20,6 +18,7 @@ class Settings(BaseSettings):
     aws_secret_access_key: Optional[str] = None
     aws_region: Optional[str] = None
     aws_default_region: Optional[str] = None
+    replicate_api_token: Optional[str] = None
 
 
 @lru_cache()
@@ -62,26 +61,25 @@ async def generate_transcript_body(article_text: str):
     return output
 
 
-async def do_tts(line: str, voice: VoiceIdType) -> bytes:
-    import boto3
+async def do_tts_openai(line: str, voice: OpenAIVoiceOption):
+    import openai
 
-    settings = get_settings()
+    client = openai.OpenAI()
 
-    session = boto3.Session(
-        aws_access_key_id=settings.aws_access_key_id,
-        aws_secret_access_key=settings.aws_secret_access_key,
-        region_name=settings.aws_region,
-    )
-    client: PollyClient = session.client("polly")
-    result = client.synthesize_speech(
-        Text=line, OutputFormat="mp3", VoiceId=voice, Engine="neural"
-    )
-    byte_string = result["AudioStream"].read()
-    return byte_string
+    response = client.audio.speech.create(model="tts-1", input=line, voice=voice)
+    result = await response.aread()
+    print(result)
+    return result
 
 
-def get_voice_for_speaker(speaker: Speaker) -> VoiceIdType:
-    return "Amy"
+def get_voice_for_speaker(speaker: Speaker) -> OpenAIVoiceOption:
+    speaker_to_voice = {
+        "narrator": "onyx",
+        "collin": "alloy",
+        "allison": "nova",
+    }
+    # return the voice. give a default
+    return speaker_to_voice.get(speaker, "alloy")  # type: ignore
 
 
 from pydub import AudioSegment
@@ -93,7 +91,9 @@ async def generate_audio(transcript: Transcript):
     tasks = []
     for line in lines:
         # add to tasks
-        tasks.append(do_tts(line=line.text, voice=get_voice_for_speaker(line.speaker)))
+        tasks.append(
+            do_tts_openai(line=line.text, voice=get_voice_for_speaker(line.speaker))
+        )
     import asyncio
     import io
 
