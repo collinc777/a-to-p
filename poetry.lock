@@ -1058,6 +1058,27 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "protobuf"
+version = "4.25.2"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "protobuf-4.25.2-cp310-abi3-win32.whl", hash = "sha256:b50c949608682b12efb0b2717f53256f03636af5f60ac0c1d900df6213910fd6"},
+    {file = "protobuf-4.25.2-cp310-abi3-win_amd64.whl", hash = "sha256:8f62574857ee1de9f770baf04dde4165e30b15ad97ba03ceac65f760ff018ac9"},
+    {file = "protobuf-4.25.2-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:2db9f8fa64fbdcdc93767d3cf81e0f2aef176284071507e3ede160811502fd3d"},
+    {file = "protobuf-4.25.2-cp37-abi3-manylinux2014_aarch64.whl", hash = "sha256:10894a2885b7175d3984f2be8d9850712c57d5e7587a2410720af8be56cdaf62"},
+    {file = "protobuf-4.25.2-cp37-abi3-manylinux2014_x86_64.whl", hash = "sha256:fc381d1dd0516343f1440019cedf08a7405f791cd49eef4ae1ea06520bc1c020"},
+    {file = "protobuf-4.25.2-cp38-cp38-win32.whl", hash = "sha256:33a1aeef4b1927431d1be780e87b641e322b88d654203a9e9d93f218ee359e61"},
+    {file = "protobuf-4.25.2-cp38-cp38-win_amd64.whl", hash = "sha256:47f3de503fe7c1245f6f03bea7e8d3ec11c6c4a2ea9ef910e3221c8a15516d62"},
+    {file = "protobuf-4.25.2-cp39-cp39-win32.whl", hash = "sha256:5e5c933b4c30a988b52e0b7c02641760a5ba046edc5e43d3b94a74c9fc57c1b3"},
+    {file = "protobuf-4.25.2-cp39-cp39-win_amd64.whl", hash = "sha256:d66a769b8d687df9024f2985d5137a337f957a0916cf5464d1513eee96a63ff0"},
+    {file = "protobuf-4.25.2-py3-none-any.whl", hash = "sha256:a8b7a98d4ce823303145bf3c1a8bdb0f2f4642a414b196f04ad9853ed0c8f830"},
+    {file = "protobuf-4.25.2.tar.gz", hash = "sha256:fe599e175cb347efc8ee524bcd4b902d11f7262c0e569ececcb89995c15f0a5e"},
+]
+
+[[package]]
 name = "pydantic"
 version = "2.5.3"
 description = "Data validation using Python type hints"
@@ -1600,6 +1621,31 @@ anyio = ">=3.4.0,<5"
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
 
 [[package]]
+name = "temporalio"
+version = "1.5.0"
+description = "Temporal.io Python SDK"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "temporalio-1.5.0-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:a95811fff7aaca3ea513f5f080706323682a94e50aee1d85d50b31b7dcb53a46"},
+    {file = "temporalio-1.5.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:3748516bc4e302fb0ab8e44ae3bffd9689eb033a1d49f69ff2d93432e943ec1d"},
+    {file = "temporalio-1.5.0-cp38-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:87fbb275844b6a8912861c0b40fb2fd4f18eb12445f231c78703560fc4707c9c"},
+    {file = "temporalio-1.5.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:536becaf9c9f544f8ed122dc8bcd706d8db1f65e2e38e0cc47dd81acefdaeb3c"},
+    {file = "temporalio-1.5.0-cp38-abi3-win_amd64.whl", hash = "sha256:a06ddd545b3d8a5f31adfe86b31408463886827694cdb0b9f5fba24a3c6954ef"},
+    {file = "temporalio-1.5.0.tar.gz", hash = "sha256:813224a360f60fba42e7d48786ea3ba4c804993e55df030c986acc58a4823464"},
+]
+
+[package.dependencies]
+protobuf = ">=3.20"
+types-protobuf = ">=3.20"
+typing-extensions = ">=4.2.0,<5.0.0"
+
+[package.extras]
+grpc = ["grpcio (>=1.59.0,<2.0.0)"]
+opentelemetry = ["opentelemetry-api (>=1.11.1,<2.0.0)", "opentelemetry-sdk (>=1.11.1,<2.0.0)"]
+
+[[package]]
 name = "tenacity"
 version = "8.2.3"
 description = "Retry code until it succeeds"
@@ -1687,6 +1733,18 @@ dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout", "pytest-xdist"]
 notebook = ["ipywidgets (>=6)"]
 slack = ["slack-sdk"]
 telegram = ["requests"]
+
+[[package]]
+name = "types-protobuf"
+version = "4.24.0.20240106"
+description = "Typing stubs for protobuf"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-protobuf-4.24.0.20240106.tar.gz", hash = "sha256:024f034f3b5e2bb2bbff55ebc4d591ed0d2280d90faceedcb148b9e714a3f3ee"},
+    {file = "types_protobuf-4.24.0.20240106-py3-none-any.whl", hash = "sha256:0612ef3156bd80567460a15ac7c109b313f6022f1fee04b4d922ab2789baab79"},
+]
 
 [[package]]
 name = "typing-extensions"
@@ -1951,4 +2009,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "e126f0eb7b0aa7b10ad07b0ce06577797060b7353ee5a0f17f92f72ee521a853"
+content-hash = "07f2bd8e9f363848db8755de9cf52ccfaae1c2b4fa20cf85dbd623620e5950f7"

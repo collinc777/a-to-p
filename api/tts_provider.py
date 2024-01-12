@@ -1,7 +1,7 @@
 import abc
 from typing import Literal
 
-from api.types import Speaker
+from api.my_custom_types import Speaker
 
 
 class TTSProvider(abc.ABC):

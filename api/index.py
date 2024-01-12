@@ -1,13 +1,13 @@
 from functools import lru_cache
 from typing import Annotated, Optional
-from fastapi import Depends, FastAPI
+from fastapi import BackgroundTasks, Depends, FastAPI
 from fastapi.responses import StreamingResponse
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
-from api.types import Transcript
+from api.my_custom_types import Transcript
 
 from api.tts_provider import get_tts_provider, TTSProvider
 
@@ -86,6 +86,22 @@ def hello_world(settings: Annotated[Settings, Depends(get_settings)]):
 
 class CreateEpisodeRequest(BaseModel):
     article_text: str
+
+
+@app.post("/api/episode_create_task")
+async def episode_create_task(
+    create_episode_request: CreateEpisodeRequest, background_tasks: BackgroundTasks
+):
+    # generate the episode
+    import uuid
+
+    episode_id = uuid.uuid4()
+    background_tasks.add_task(
+        generate_episode(episode_id, create_episode_request.article_text)
+    )
+    audio = await generate_episode(create_episode_request.article_text)
+
+    return {"message": "episode created"}
 
 
 @app.post("/api/episode")
