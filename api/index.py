@@ -1,13 +1,14 @@
 from functools import lru_cache
+import uuid
 from typing import Annotated, Optional
-from fastapi import Depends, FastAPI
+from fastapi import BackgroundTasks, Depends, FastAPI
 from fastapi.responses import StreamingResponse
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
-from api.types import Transcript
+from api.custom_types import Transcript
 
 from api.tts_provider import get_tts_provider, TTSProvider
 
@@ -88,12 +89,38 @@ class CreateEpisodeRequest(BaseModel):
     article_text: str
 
 
-@app.post("/api/episode")
-async def episode_create(create_episode_request: CreateEpisodeRequest):
-    # generate the episode
-    audio = await generate_episode(create_episode_request.article_text)
+database = {}
 
-    return StreamingResponse(audio, media_type="audio/mpeg")  # type: ignore
+
+async def generate_episode_with_id(id: str, article_text: str):
+    database[id] = {"state": "processing"}
+    result = await generate_episode(article_text)
+    database[id]["state"] = "done"
+    database[id]["result"] = result
+    return result
+
+
+@app.post("/api/episode_create_task")
+async def episode_create_task(
+    create_episode_request: CreateEpisodeRequest, background_tasks: BackgroundTasks
+):
+    id = uuid.uuid4()
+    print(str(id))
+    background_tasks.add_task(
+        generate_episode_with_id, str(id), create_episode_request.article_text
+    )
+
+    return {"status": "success"}
+
+
+@app.get("/api/episode/{id}")
+async def episode_get(id: str):
+    if id not in database:
+        return {"status": "not found"}
+    if database[id]["state"] == "processing":
+        return {"status": "processing"}
+    if database[id]["state"] == "done":
+        return StreamingResponse(database[id]["result"], media_type="audio/mpeg")
 
 
 def main():
