@@ -2,6 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
+  // useEffect(() => {
+  //   const doFetch = async () => {
+  //     const result = await fetch("/api/episode", {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         article_text: "This is a test article",
+  //       }),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //     console.log({ result });
+  //   };
+  //   doFetch();
+  // }, []);
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
