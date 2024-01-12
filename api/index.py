@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Annotated, Awaitable, List, Literal, Optional
+from typing import Annotated, Optional
 from fastapi import Depends, FastAPI
 from fastapi.responses import StreamingResponse
 import uvicorn
@@ -7,7 +7,7 @@ from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
-from api.types import Speaker, Transcript, TranscriptLine
+from api.types import Transcript
 
 from api.tts_provider import get_tts_provider, TTSProvider
 
@@ -92,7 +92,6 @@ class CreateEpisodeRequest(BaseModel):
 async def episode_create(create_episode_request: CreateEpisodeRequest):
     # generate the episode
     audio = await generate_episode(create_episode_request.article_text)
-    import io
 
     return StreamingResponse(audio, media_type="audio/mpeg")  # type: ignore
 
