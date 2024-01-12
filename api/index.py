@@ -1,6 +1,8 @@
+import abc
 from functools import lru_cache
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, Awaitable, List, Literal, Optional
 from fastapi import Depends, FastAPI
+from fastapi.responses import StreamingResponse
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
@@ -28,13 +30,13 @@ def get_settings():
 
 app = FastAPI()
 
-Speaker = Literal["narrator", "collin", "allison"]
+Speaker = Literal["narrator", "jake", "emily"]
 
 
 class TranscriptLine(BaseModel):
     """A line of the transcript"""
 
-    # speaker is one of narrator, collin, or allison
+    # speaker is one of narrator, Jake, or emily
     speaker: Speaker
     text: str
 
@@ -45,9 +47,55 @@ class Transcript(BaseModel):
     transcript_lines: List[TranscriptLine]
 
 
+class TTSProvider(abc.ABC):
+    @abc.abstractmethod
+    def speak(self, text: str, speaker: Speaker) -> bytes:
+        raise NotImplementedError("This method should be overridden by subclasses")
+
+    @abc.abstractmethod
+    def _get_voice_for_speaker(self, speaker: Speaker) -> str:
+        """Get the voice for the speaker specific to the provider"""
+        raise NotImplementedError("This method should be overridden by subclasses")
+
+
+class OpenAITTSProvider(TTSProvider):
+    def __init__(self):
+        import openai
+
+        self.client = openai.OpenAI()
+
+    async def speak(self, text: str, speaker: Speaker) -> bytes:
+        import openai
+
+        client = openai.OpenAI()
+        voice = self._get_voice_for_speaker(speaker)
+        response = client.audio.speech.create(model="tts-1", input=text, voice=voice)  # type: ignore
+        result = await response.aread()
+        return result
+
+    def _get_voice_for_speaker(self, speaker: Speaker):
+        speaker_to_voice = {
+            "narrator": "alloy",
+            "jake": "onyx",
+            "emily": "nova",
+        }
+        return speaker_to_voice.get(speaker, "alloy")  # type: ignore
+
+
+def get_tts_provider(provider: Literal["openai", "aws"]):
+    match (provider):
+        case "openai":
+            return OpenAITTSProvider()
+        case "aws":
+            raise NotImplementedError("AWS TTS not implemented yet")
+        case _:
+            raise ValueError(f"Unknown TTS provider {provider}")
+
+
 async def generate_episode(article_text: str):
     transcript_body = await generate_transcript_body(article_text)
-    audio = await generate_audio(transcript_body)
+    provider = get_tts_provider("openai")
+    audio = await generate_audio(transcript_body, provider)
     return audio
 
 
@@ -57,50 +105,37 @@ async def generate_transcript_body(article_text: str):
     program = OpenAIPydanticProgram.from_defaults(
         output_cls=Transcript,  # type: ignore
         llm=OpenAI(model="gpt-4-1106-preview"),
-        prompt_template_str="""You are a highly skilled podcast writer specializing in transforming blog posts into engaging NPR-style conversational podcast transcripts. Your task is to create a dynamic dialogue between two speakers, Collin and Allison. They will be discussing the content of the provided blog posts in a lively, informative manner. The conversation should mimic the natural flow of a professional podcast, with each speaker offering insights, asking questions, and elaborating on the topics presented. Your output must adhere strictly to a JSON format, ensuring each line of dialogue is correctly attributed to either Collin or Allison. Please use the following JSON structure to organize the conversation, making it easy to parse and understand. Here's the input you need to work with: {text}. Remember, the focus is on creating a natural, NPR-style conversation that both informs and engages the listener, while maintaining impeccable JSON formatting.""",
+        prompt_template_str="""You are a highly skilled podcast writer specializing in transforming blog posts into engaging NPR-style conversational podcast transcripts. Your task is to create a dynamic dialogue between two speakers, Jake and Emily. They will be discussing the content of the provided blog posts in a lively, informative manner. The conversation should mimic the natural flow of a professional podcast, with each speaker offering insights, asking questions, and elaborating on the topics presented. Your output must adhere strictly to a JSON format, ensuring each line of dialogue is correctly attributed to either Jake or Emily. Please use the following JSON structure to organize the conversation, making it easy to parse and understand. Here's the input you need to work with: {text}. Remember, the focus is on creating a natural, NPR-style conversation that both informs and engages the listener, while maintaining impeccable JSON formatting.""",
         verbose=True,
     )
     output: Transcript = await program.acall(text=article_text)  # type: ignore
     return output
 
 
-async def do_tts_openai(line: str, voice: OpenAIVoiceOption):
-    import openai
-
-    client = openai.OpenAI()
-
-    response = client.audio.speech.create(model="tts-1", input=line, voice=voice)
-    result = await response.aread()
-    return result
-
-
 def get_voice_for_speaker(speaker: Speaker) -> OpenAIVoiceOption:
     speaker_to_voice = {
         "narrator": "alloy",
-        "collin": "onyx",
-        "allison": "nova",
+        "jake": "onyx",
+        "emily": "nova",
     }
     # return the voice. give a default
     return speaker_to_voice.get(speaker, "alloy")  # type: ignore
 
 
-from pydub import AudioSegment
-
-
-async def generate_audio(transcript: Transcript):
+async def generate_audio(transcript: Transcript, provider: TTSProvider):
     # use tts to generate audio
     lines = transcript.transcript_lines
     tasks = []
     for line in lines:
         # add to tasks
-        tasks.append(
-            do_tts_openai(line=line.text, voice=get_voice_for_speaker(line.speaker))
-        )
+        tasks.append(provider.speak(text=line.text, speaker=line.speaker))
     import asyncio
     import io
 
     audios = await asyncio.gather(*tasks)
     # convert byte strings to audio segments and add silence between them
+    from pydub import AudioSegment
+
     silence = AudioSegment.silent(duration=500)  # 500 milliseconds of silence
     audio_segments = [
         AudioSegment.from_mp3(io.BytesIO(audio)) + silence for audio in audios
@@ -108,8 +143,8 @@ async def generate_audio(transcript: Transcript):
     # combine the audio segments
     combined = sum(audio_segments, AudioSegment.empty())
     # save to a file
-    combined.export("audio.mp3", format="mp3")
-    return combined.raw_data
+    result = combined.export(format="mp3")
+    return result
 
 
 @app.get("/api/python")
@@ -119,11 +154,17 @@ def hello_world(settings: Annotated[Settings, Depends(get_settings)]):
     return {"message": "hello world"}
 
 
+class CreateEpisodeRequest(BaseModel):
+    article_text: str
+
+
 @app.post("/api/episode")
-async def episode_create(article_text: str):
+async def episode_create(create_episode_request: CreateEpisodeRequest):
     # generate the episode
-    await generate_episode(article_text)
-    return {"message": "episode created"}
+    audio = await generate_episode(create_episode_request.article_text)
+    import io
+
+    return StreamingResponse(audio, media_type="audio/mpeg")  # type: ignore
 
 
 def main():
