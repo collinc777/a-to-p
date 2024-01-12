@@ -40,7 +40,7 @@ class OpenAITTSProvider(TTSProvider):
 
 
 def get_tts_provider(provider: Literal["openai", "aws"]):
-    match (provider):
+    match provider:
         case "openai":
             return OpenAITTSProvider()
         case "aws":
