@@ -1,4 +1,3 @@
-import abc
 from functools import lru_cache
 from typing import Annotated, Awaitable, List, Literal, Optional
 from fastapi import Depends, FastAPI
@@ -8,9 +7,11 @@ from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
+from api.types import Speaker, Transcript, TranscriptLine
+
+from api.tts_provider import get_tts_provider, TTSProvider
 
 load_dotenv()
-OpenAIVoiceOption = Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 
 
 class Settings(BaseSettings):
@@ -29,67 +30,6 @@ def get_settings():
 
 
 app = FastAPI()
-
-Speaker = Literal["narrator", "jake", "emily"]
-
-
-class TranscriptLine(BaseModel):
-    """A line of the transcript"""
-
-    # speaker is one of narrator, Jake, or emily
-    speaker: Speaker
-    text: str
-
-
-class Transcript(BaseModel):
-    """The transcript of the podcast episode"""
-
-    transcript_lines: List[TranscriptLine]
-
-
-class TTSProvider(abc.ABC):
-    @abc.abstractmethod
-    def speak(self, text: str, speaker: Speaker) -> bytes:
-        raise NotImplementedError("This method should be overridden by subclasses")
-
-    @abc.abstractmethod
-    def _get_voice_for_speaker(self, speaker: Speaker) -> str:
-        """Get the voice for the speaker specific to the provider"""
-        raise NotImplementedError("This method should be overridden by subclasses")
-
-
-class OpenAITTSProvider(TTSProvider):
-    def __init__(self):
-        import openai
-
-        self.client = openai.OpenAI()
-
-    async def speak(self, text: str, speaker: Speaker) -> bytes:
-        import openai
-
-        client = openai.OpenAI()
-        voice = self._get_voice_for_speaker(speaker)
-        response = client.audio.speech.create(model="tts-1", input=text, voice=voice)  # type: ignore
-        result = await response.aread()
-        return result
-
-    def _get_voice_for_speaker(self, speaker: Speaker):
-        speaker_to_voice = {
-            "narrator": "alloy",
-            "jake": "onyx",
-            "emily": "nova",
-        }
-        return speaker_to_voice.get(speaker, "alloy")  # type: ignore
-
-
-def get_tts_provider(provider: Literal["openai", "aws"]):
-    match (provider):
-        case "openai":
-            return OpenAITTSProvider()
-        case "aws":
-            raise NotImplementedError("AWS TTS not implemented yet")
-        case _:
-            raise ValueError(f"Unknown TTS provider {provider}")
 
 
 async def generate_episode(article_text: str):
@@ -110,16 +50,6 @@ async def generate_transcript_body(article_text: str):
     )
     output: Transcript = await program.acall(text=article_text)  # type: ignore
     return output
-
-
-def get_voice_for_speaker(speaker: Speaker) -> OpenAIVoiceOption:
-    speaker_to_voice = {
-        "narrator": "alloy",
-        "jake": "onyx",
-        "emily": "nova",
-    }
-    # return the voice. give a default
-    return speaker_to_voice.get(speaker, "alloy")  # type: ignore
 
 
 async def generate_audio(transcript: Transcript, provider: TTSProvider):
