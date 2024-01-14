@@ -1,14 +1,16 @@
 from functools import lru_cache
+from io import BytesIO
 import uuid
 from typing import Annotated, Optional
 from fastapi import BackgroundTasks, Depends, FastAPI
 from fastapi.responses import StreamingResponse
+from mypy_boto3_s3 import S3ServiceResource
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
-from api.custom_types import Transcript
+from api.models import Transcript
 
 from api.tts_provider import get_tts_provider, TTSProvider
 
@@ -20,6 +22,10 @@ class Settings(BaseSettings):
     openai_api_key: Optional[str] = None
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
+    bucket_access_key_id: Optional[str] = None
+    bucket_secret_access_key: Optional[str] = None
+    bucket_url: Optional[str] = None
+    bucket_public_url: Optional[str] = None
     aws_region: Optional[str] = None
     aws_default_region: Optional[str] = None
     replicate_api_token: Optional[str] = None
@@ -33,10 +39,12 @@ def get_settings():
 app = FastAPI()
 
 
-async def generate_episode(article_text: str):
+async def generate_episode(article_text: str, episode_id: str):
     transcript_body = await generate_transcript_body(article_text)
     provider = get_tts_provider("openai")
-    audio = await generate_audio(transcript_body, provider)
+    audio = await generate_audio(
+        transcript=transcript_body, provider=provider, episode_id=episode_id
+    )
     return audio
 
 
@@ -53,7 +61,13 @@ async def generate_transcript_body(article_text: str):
     return output
 
 
-async def generate_audio(transcript: Transcript, provider: TTSProvider):
+async def generate_audio(
+    *,
+    transcript: Transcript,
+    provider: TTSProvider,
+    episode_id: str,
+):
+    settings = get_settings()
     # use tts to generate audio
     lines = transcript.transcript_lines
     tasks = []
@@ -75,7 +89,29 @@ async def generate_audio(transcript: Transcript, provider: TTSProvider):
     combined = sum(audio_segments, AudioSegment.empty())
     # save to a file
     result = combined.export(format="mp3")
-    return result
+    return upload_fileobj(result, "a-to-p", f"{ episode_id }.mp3")  # type: ignore
+
+
+def upload_fileobj(fileobj: BytesIO, bucket: str, key: str):
+    import boto3
+
+    settings = get_settings()
+    client = boto3.client(
+        "s3",
+        endpoint_url=settings.bucket_url,
+        aws_access_key_id=settings.bucket_access_key_id,
+        aws_secret_access_key=settings.bucket_secret_access_key,
+    )
+    response = client.upload_fileobj(
+        fileobj,  # type: ignore
+        bucket,
+        key,
+        ExtraArgs={"ACL": "public-read"},
+    )  # type: ignore
+    print(response)
+    # check the path exists
+    # url should be https://646290bc1d3bb40acc9629e92c0b0bf5.r2.cloudflarestorage.com/a-to-p/episode.mp3
+    return response
 
 
 @app.get("/api/python")
@@ -94,7 +130,7 @@ database = {}
 
 async def generate_episode_with_id(id: str, article_text: str):
     database[id] = {"state": "processing"}
-    result = await generate_episode(article_text)
+    result = await generate_episode(article_text, id)
     database[id]["state"] = "done"
     database[id]["result"] = result
     return result
@@ -114,13 +150,13 @@ async def episode_create_task(
 
 
 @app.get("/api/episode/{id}")
-async def episode_get(id: str):
+async def episode_get(id: str, settings: Annotated[Settings, Depends(get_settings)]):
     if id not in database:
         return {"status": "not found"}
     if database[id]["state"] == "processing":
         return {"status": "processing"}
     if database[id]["state"] == "done":
-        return StreamingResponse(database[id]["result"], media_type="audio/mpeg")
+        return {"status": "done", "result": f"{settings.bucket_public_url}/{id}"}
 
 
 def main():
