@@ -3,8 +3,6 @@ from io import BytesIO
 import uuid
 from typing import Annotated, Optional
 from fastapi import BackgroundTasks, Depends, FastAPI
-from fastapi.responses import StreamingResponse
-from mypy_boto3_s3 import S3ServiceResource
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
@@ -125,38 +123,48 @@ class CreateEpisodeRequest(BaseModel):
     article_text: str
 
 
+class CreateEpisodeResponse(BaseModel):
+    id: str
+    status: str
+    url: str
+
+
 database = {}
 
 
 async def generate_episode_with_id(id: str, article_text: str):
+    settings = get_settings()
     database[id] = {"state": "processing"}
     result = await generate_episode(article_text, id)
     database[id]["state"] = "done"
-    database[id]["result"] = result
+    database[id]["url"] = f"{settings.bucket_public_url}/{id}.mp3"
     return result
 
 
 @app.post("/api/episode_create_task")
 async def episode_create_task(
     create_episode_request: CreateEpisodeRequest, background_tasks: BackgroundTasks
-):
+) -> CreateEpisodeResponse:
     id = uuid.uuid4()
     print(str(id))
     background_tasks.add_task(
         generate_episode_with_id, str(id), create_episode_request.article_text
     )
-
-    return {"status": "success"}
+    return CreateEpisodeResponse(id=str(id), status="started", url="")
 
 
 @app.get("/api/episode/{id}")
-async def episode_get(id: str, settings: Annotated[Settings, Depends(get_settings)]):
+async def episode_get(
+    id: str, settings: Annotated[Settings, Depends(get_settings)]
+) -> CreateEpisodeResponse:
     if id not in database:
-        return {"status": "not found"}
+        return CreateEpisodeResponse(id=str(id), status="not found", url="")
     if database[id]["state"] == "processing":
-        return {"status": "processing"}
+        return CreateEpisodeResponse(id=str(id), status="processing", url="")
     if database[id]["state"] == "done":
-        return {"status": "done", "result": f"{settings.bucket_public_url}/{id}"}
+        return CreateEpisodeResponse(id=str(id), status="done", url=database[id]["url"])
+    else:
+        return CreateEpisodeResponse(id=str(id), status="error", url="")
 
 
 def main():
