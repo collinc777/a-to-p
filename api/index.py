@@ -4,7 +4,9 @@ from io import BytesIO
 import uuid
 from typing import Annotated, Optional
 from fastapi import BackgroundTasks, Depends, FastAPI
+from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, Field, create_engine, Session
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
@@ -37,21 +39,23 @@ def get_settings():
     return Settings()
 
 
-engine = create_engine(get_settings().database_url)  # type: ignore
+engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
 
 
-def create_db_and_table():
-    SQLModel.metadata.create_all(engine)
+async def create_db_and_table():
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_table()
+    await create_db_and_table()
     yield
 
 
-def get_session():
-    with Session(engine) as session:
+async def get_session():
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with async_session() as session:
         yield session
 
 
@@ -160,13 +164,15 @@ async def generate_episode_with_id(id: str, article_text: str):
 async def episode_create_task(
     create_episode_request: CreateEpisodeRequest,
     background_tasks: BackgroundTasks,
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> Episode:
     id = uuid.uuid4()
     print(str(id))
     episode = Episode(id=str(id), status="started", url="")
     session.add(episode)
-    session.commit()
+    await session.commit()
+    await session.refresh(episode)
+    print(episode)
     background_tasks.add_task(
         generate_episode_with_id, str(id), create_episode_request.article_text
     )

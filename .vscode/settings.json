@@ -1,3 +1,15 @@
 {
-	"pylint.enabled": false
+	"pylint.enabled": false,
+	"sqltools.connections": [
+		{
+			"previewLimit": 50,
+			"server": "localhost",
+			"port": 5432,
+			"driver": "PostgreSQL",
+			"name": "local_posgres",
+			"database": "postgres",
+			"username": "postgres",
+			"password": "postgres"
+		}
+	]
 }
