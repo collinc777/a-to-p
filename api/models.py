@@ -22,6 +22,7 @@ class Transcript(BaseModel):
 
 
 class Episode(SQLModel, table=True):
-    id: str = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     status: str
     url: str
+    article_text: str

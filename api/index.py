@@ -47,19 +47,13 @@ async def create_db_and_table():
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await create_db_and_table()
-    yield
-
-
 async def get_session():
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with async_session() as session:
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
+    async with async_session() as session:  # type: ignore
         yield session
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
 async def generate_episode(article_text: str, episode_id: str):
