@@ -1,14 +1,16 @@
+from contextlib import asynccontextmanager
 from functools import lru_cache
 from io import BytesIO
 import uuid
 from typing import Annotated, Optional
 from fastapi import BackgroundTasks, Depends, FastAPI
+from sqlmodel import SQLModel, Field, create_engine, Session
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
-from api.models import Transcript
+from api.models import Episode, Transcript
 
 from api.tts_provider import get_tts_provider, TTSProvider
 
@@ -27,6 +29,7 @@ class Settings(BaseSettings):
     aws_region: Optional[str] = None
     aws_default_region: Optional[str] = None
     replicate_api_token: Optional[str] = None
+    database_url: Optional[str] = None
 
 
 @lru_cache()
@@ -34,7 +37,25 @@ def get_settings():
     return Settings()
 
 
-app = FastAPI()
+engine = create_engine(get_settings().database_url)  # type: ignore
+
+
+def create_db_and_table():
+    SQLModel.metadata.create_all(engine)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_table()
+    yield
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 async def generate_episode(article_text: str, episode_id: str):
@@ -123,12 +144,6 @@ class CreateEpisodeRequest(BaseModel):
     article_text: str
 
 
-class CreateEpisodeResponse(BaseModel):
-    id: str
-    status: str
-    url: str
-
-
 database = {}
 
 
@@ -143,28 +158,33 @@ async def generate_episode_with_id(id: str, article_text: str):
 
 @app.post("/api/episode_create_task")
 async def episode_create_task(
-    create_episode_request: CreateEpisodeRequest, background_tasks: BackgroundTasks
-) -> CreateEpisodeResponse:
+    create_episode_request: CreateEpisodeRequest,
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+) -> Episode:
     id = uuid.uuid4()
     print(str(id))
+    episode = Episode(id=str(id), status="started", url="")
+    session.add(episode)
+    session.commit()
     background_tasks.add_task(
         generate_episode_with_id, str(id), create_episode_request.article_text
     )
-    return CreateEpisodeResponse(id=str(id), status="started", url="")
+    return Episode(id=str(id), status="started", url="")
 
 
 @app.get("/api/episode/{id}")
 async def episode_get(
     id: str, settings: Annotated[Settings, Depends(get_settings)]
-) -> CreateEpisodeResponse:
+) -> Episode:
     if id not in database:
-        return CreateEpisodeResponse(id=str(id), status="not found", url="")
+        return Episode(id=str(id), status="not found", url="")
     if database[id]["state"] == "processing":
-        return CreateEpisodeResponse(id=str(id), status="processing", url="")
+        return Episode(id=str(id), status="processing", url="")
     if database[id]["state"] == "done":
-        return CreateEpisodeResponse(id=str(id), status="done", url=database[id]["url"])
+        return Episode(id=str(id), status="done", url=database[id]["url"])
     else:
-        return CreateEpisodeResponse(id=str(id), status="error", url="")
+        return Episode(id=str(id), status="error", url="")
 
 
 def main():
