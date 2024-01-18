@@ -21,8 +21,11 @@ class Transcript(BaseModel):
     transcript_lines: List[TranscriptLine]
 
 
-class Episode(SQLModel, table=True):
+class SQLModelBaseModel(SQLModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+
+class Episode(SQLModelBaseModel, table=True):
     status: str
     url: str
     article_text: str

@@ -148,15 +148,18 @@ async def generate_episode_with_id(id: str, article_text: str):
 
     # update episode to processing
     async for session in get_session():
-        episode = await session.get(Episode, uuid.UUID(id))
+        from .crud_episode import crud_episode
+
+        episode = await crud_episode.get(session, uuid.UUID(id))
         if episode is None:
             return
-        episode.status = "processing"
-        await session.commit()
+        episode = await crud_episode.update(
+            session, db_obj=episode, obj_in={"status": "processing"}
+        )
         result = await generate_episode(article_text, id)
-        episode.status = "done"
-        episode.url = f"{settings.bucket_public_url}/{id}.mp3"
-        await session.commit()
+        await crud_episode.update(
+            session, db_obj=episode, obj_in={"status": "done", "url": result}
+        )
         return result
 
 
