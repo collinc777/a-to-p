@@ -38,3 +38,5 @@ next-env.d.ts
 
 venv
 data
+.pytest_cache
+.ruff_cache
