@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY ./api /app/api
 COPY ./migrations /app/migrations
-COPY alembic.ini poetry.lock pyproject.toml README.md /app/
+COPY alembic.ini backend_startup.sh poetry.lock pyproject.toml README.md /app/
 
 RUN pip install poetry && \
 	poetry config virtualenvs.create false && \
@@ -12,4 +12,4 @@ RUN pip install poetry && \
 
 EXPOSE 8000
 
-CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/bin/bash", "backend_startup.sh"]
