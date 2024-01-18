@@ -3,7 +3,7 @@ from python:3.11-slim
 WORKDIR /app
 
 COPY ./api /app/api
-COPY ./migrations alembic.ini poetry.lock pyproject.toml /app/
+COPY README.MD ./migrations alembic.ini poetry.lock pyproject.toml /app/
 
 RUN pip install poetry && \
 	poetry config virtualenvs.create false && \
