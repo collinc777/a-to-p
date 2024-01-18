@@ -46,3 +46,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      # call render webhook to trigger deployment
+      - name: Call render webhook
+        run: curl ${{ secrets.RENDER_WEBHOOK }}
