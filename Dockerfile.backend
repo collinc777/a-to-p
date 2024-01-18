@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY ./api /app/api
 COPY ./migrations /app/migrations
-COPY .env alembic.ini poetry.lock pyproject.toml README.md /app/
+COPY alembic.ini poetry.lock pyproject.toml README.md /app/
 
 RUN pip install poetry && \
 	poetry config virtualenvs.create false && \
