@@ -3,10 +3,13 @@ from python:3.11-slim
 WORKDIR /app
 
 COPY ./api /app/api
-COPY ./migrations alembic.ini poetry.lock pyproject.toml README.md /app/
+COPY ./migrations /app/migrations
+COPY .env alembic.ini poetry.lock pyproject.toml README.md /app/
 
 RUN pip install poetry && \
 	poetry config virtualenvs.create false && \
 	poetry install --no-dev --no-interaction --no-ansi
 
-CMD ["uvicorn", "api.index:app"]
+EXPOSE 8000
+
+CMD ["uvicorn", "api.index:app", "--host", "0.0.0.0", "--port", "8000"]
