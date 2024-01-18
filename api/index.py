@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 from io import BytesIO
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated, Optional, AsyncGenerator
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, Field, create_engine, Session
@@ -47,10 +47,10 @@ async def create_db_and_table():
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
-async def get_session():
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
     async with async_session() as session:  # type: ignore
-        yield session
+        yield session  # type: ignore
 
 
 app = FastAPI()
@@ -142,16 +142,22 @@ class CreateEpisodeRequest(BaseModel):
     article_text: str
 
 
-database = {}
-
-
 async def generate_episode_with_id(id: str, article_text: str):
     settings = get_settings()
-    database[id] = {"state": "processing"}
-    result = await generate_episode(article_text, id)
-    database[id]["state"] = "done"
-    database[id]["url"] = f"{settings.bucket_public_url}/{id}.mp3"
-    return result
+    import uuid
+
+    # update episode to processing
+    async for session in get_session():
+        episode = await session.get(Episode, uuid.UUID(id))
+        if episode is None:
+            return
+        episode.status = "processing"
+        await session.commit()
+        result = await generate_episode(article_text, id)
+        episode.status = "done"
+        episode.url = f"{settings.bucket_public_url}/{id}.mp3"
+        await session.commit()
+        return result
 
 
 @app.post("/api/episode_create_task")
@@ -162,7 +168,12 @@ async def episode_create_task(
 ) -> Episode:
     id = uuid.uuid4()
     print(str(id))
-    episode = Episode(id=str(id), status="started", url="")
+    episode = Episode(
+        id=id,
+        status="started",
+        url="",
+        article_text=create_episode_request.article_text,
+    )
     session.add(episode)
     await session.commit()
     await session.refresh(episode)
@@ -170,21 +181,21 @@ async def episode_create_task(
     background_tasks.add_task(
         generate_episode_with_id, str(id), create_episode_request.article_text
     )
-    return Episode(id=str(id), status="started", url="")
+    return episode
 
 
 @app.get("/api/episode/{id}")
 async def episode_get(
-    id: str, settings: Annotated[Settings, Depends(get_settings)]
+    id: str,
+    settings: Annotated[Settings, Depends(get_settings)],
+    session: AsyncSession = Depends(get_session),
 ) -> Episode:
-    if id not in database:
-        return Episode(id=str(id), status="not found", url="")
-    if database[id]["state"] == "processing":
-        return Episode(id=str(id), status="processing", url="")
-    if database[id]["state"] == "done":
-        return Episode(id=str(id), status="done", url=database[id]["url"])
-    else:
-        return Episode(id=str(id), status="error", url="")
+    episode = await session.get(Episode, id)
+    if episode is None:
+        import uuid
+
+        return Episode(id=uuid.UUID(id), status="not found", url="", article_text="")
+    return episode
 
 
 def main():
