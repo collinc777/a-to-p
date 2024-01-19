@@ -7,21 +7,21 @@ const nextConfig = {
         destination:
           process.env.NODE_ENV === "development"
             ? "http://localhost:8000/api/:path*"
-            : "/api/",
+            : `${process.env.PROD_API_ENDPOINT}/api/:path*`,
       },
       {
         source: "/docs",
         destination:
           process.env.NODE_ENV === "development"
             ? "http://localhost:8000/docs"
-            : "/api/docs",
+            : `${process.env.PROD_API_ENDPOINT}/api/docs`,
       },
       {
         source: "/openapi.json",
         destination:
           process.env.NODE_ENV === "development"
             ? "http://localhost:8000/openapi.json"
-            : "/api/openapi.json",
+            : `${process.env.PROD_API_ENDPOINT}/api/openapi.json`,
       },
     ];
   },
