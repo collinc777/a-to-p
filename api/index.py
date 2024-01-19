@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
+import uuid
+from .crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
-import uuid
 from typing import Annotated, Optional, AsyncGenerator
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.orm import sessionmaker
@@ -40,11 +41,6 @@ def get_settings():
 
 
 engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
-
-
-async def create_db_and_table():
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
@@ -106,7 +102,7 @@ async def generate_audio(
     combined = sum(audio_segments, AudioSegment.empty())
     # save to a file
     result = combined.export(format="mp3")
-    return upload_fileobj(result, "a-to-p", f"{ episode_id }.mp3")  # type: ignore
+    upload_fileobj(result, "a-to-p", f"{ episode_id }.mp3")  # type: ignore
 
 
 def upload_fileobj(fileobj: BytesIO, bucket: str, key: str):
@@ -128,7 +124,9 @@ def upload_fileobj(fileobj: BytesIO, bucket: str, key: str):
     print(response)
     # check the path exists
     # url should be https://646290bc1d3bb40acc9629e92c0b0bf5.r2.cloudflarestorage.com/a-to-p/episode.mp3
-    return response
+    if not settings.bucket_public_url:
+        raise Exception("bucket_public_url not set")
+    return settings.bucket_public_url + "/" + bucket + "/" + key + ".mp3"
 
 
 @app.get("/api/python")
@@ -142,21 +140,19 @@ class CreateEpisodeRequest(BaseModel):
     article_text: str
 
 
-async def generate_episode_with_id(id: str, article_text: str):
+async def generate_episode_with_id(id: str):
     settings = get_settings()
     import uuid
 
     # update episode to processing
     async for session in get_session():
-        from .crud_episode import crud_episode
-
         episode = await crud_episode.get(session, uuid.UUID(id))
         if episode is None:
             return
         episode = await crud_episode.update(
             session, db_obj=episode, obj_in={"status": "processing"}
         )
-        result = await generate_episode(article_text, id)
+        result = await generate_episode(episode.article_text, id)
         await crud_episode.update(
             session, db_obj=episode, obj_in={"status": "done", "url": result}
         )
@@ -181,9 +177,7 @@ async def episode_create_task(
     await session.commit()
     await session.refresh(episode)
     print(episode)
-    background_tasks.add_task(
-        generate_episode_with_id, str(id), create_episode_request.article_text
-    )
+    background_tasks.add_task(generate_episode_with_id, str(id))
     return episode
 
 
@@ -193,10 +187,8 @@ async def episode_get(
     settings: Annotated[Settings, Depends(get_settings)],
     session: AsyncSession = Depends(get_session),
 ) -> Episode:
-    episode = await session.get(Episode, id)
+    episode = await crud_episode.get(session, uuid.UUID(id))
     if episode is None:
-        import uuid
-
         return Episode(id=uuid.UUID(id), status="not found", url="", article_text="")
     return episode
 

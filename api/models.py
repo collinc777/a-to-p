@@ -27,5 +27,5 @@ class SQLModelBaseModel(SQLModel):
 
 class Episode(SQLModelBaseModel, table=True):
     status: str
-    url: str
+    url: str = Field(default=None, nullable=True)
     article_text: str
