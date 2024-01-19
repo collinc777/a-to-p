@@ -52,13 +52,13 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 app = FastAPI()
 
 
-async def generate_episode(article_text: str, episode_id: str):
+async def generate_episode(article_text: str, episode_id: str) -> str:
     transcript_body = await generate_transcript_body(article_text)
     provider = get_tts_provider("openai")
-    audio = await generate_audio(
+    url = await generate_audio(
         transcript=transcript_body, provider=provider, episode_id=episode_id
     )
-    return audio
+    return url
 
 
 async def generate_transcript_body(article_text: str):
@@ -79,7 +79,7 @@ async def generate_audio(
     transcript: Transcript,
     provider: TTSProvider,
     episode_id: str,
-):
+) -> str:
     settings = get_settings()
     # use tts to generate audio
     lines = transcript.transcript_lines
@@ -102,10 +102,10 @@ async def generate_audio(
     combined = sum(audio_segments, AudioSegment.empty())
     # save to a file
     result = combined.export(format="mp3")
-    upload_fileobj(result, "a-to-p", f"{ episode_id }.mp3")  # type: ignore
+    return upload_fileobj(result, "a-to-p", f"{ episode_id }.mp3")  # type: ignore
 
 
-def upload_fileobj(fileobj: BytesIO, bucket: str, key: str):
+def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> str:
     import boto3
 
     settings = get_settings()
@@ -126,7 +126,7 @@ def upload_fileobj(fileobj: BytesIO, bucket: str, key: str):
     # url should be https://646290bc1d3bb40acc9629e92c0b0bf5.r2.cloudflarestorage.com/a-to-p/episode.mp3
     if not settings.bucket_public_url:
         raise Exception("bucket_public_url not set")
-    return settings.bucket_public_url + "/" + bucket + "/" + key + ".mp3"
+    return settings.bucket_public_url + "/" + key
 
 
 @app.get("/api/python")

@@ -58,8 +58,7 @@ export default function EpisodePage() {
         >
           Generate Episode
         </button>
-        {url && <audio src={url}></audio>}
-        <AudioPlayer url={url} />
+        {url && <AudioPlayer url={url} />}
       </div>
     </main>
   );
