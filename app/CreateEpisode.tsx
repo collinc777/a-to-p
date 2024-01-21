@@ -63,7 +63,7 @@ export function CreateEpisode() {
             onSubmit={async (e) => {
               setFormSubmitting(true);
               e.preventDefault();
-              const text = e.target.inputText.value;
+              const text = (e.target as any).inputText.value;
               let payload = {};
               if (text.startsWith("http")) {
                 payload = { article_url: text };
