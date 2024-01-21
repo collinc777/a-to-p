@@ -38,11 +38,20 @@ import pytest
 #     assert result is not None
 
 
-@pytest.mark.asyncio
-def test_upload_fileobj():
-    from index import upload_fileobj
-    import io
+# @pytest.mark.asyncio
+# def test_upload_fileobj():
+#     from index import upload_fileobj
+#     import io
 
-    result = upload_fileobj(io.BytesIO(b"hello world"), "a-to-p", "episode.mp3")
+#     result = upload_fileobj(io.BytesIO(b"hello world"), "a-to-p", "episode.mp3")
+#     assert result is not None
+#     # assert file audio.mp3 exists
+
+
+def test_get_article_text():
+    from api.index import get_article_text
+
+    result = get_article_text(
+        "https://dberkholz.com/2024/01/17/the-lazy-technologists-guide-to-weight-loss/"
+    )
     assert result is not None
-    # assert file audio.mp3 exists

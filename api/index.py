@@ -10,7 +10,7 @@ from sqlmodel import SQLModel, Field, create_engine, Session
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl, model_validator, root_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 from api.models import Episode, Transcript
@@ -21,7 +21,7 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
     openai_api_key: Optional[str] = None
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
@@ -137,7 +137,16 @@ def hello_world(settings: Annotated[Settings, Depends(get_settings)]):
 
 
 class CreateEpisodeRequest(BaseModel):
-    article_text: str
+    article_text: Optional[str] = None
+    article_url: Optional[str] = None
+    # either article_text or article_url must be provided
+
+    @model_validator(mode="after")
+    def check_article_text_or_url(self):
+        article_text, article_url = (self.article_text, self.article_url)
+        if not article_text and not article_url:
+            raise ValueError("Either article_text or article_url must be provided")
+        return self
 
 
 async def generate_episode_with_id(id: str):
@@ -166,13 +175,15 @@ async def episode_create_task(
     session: AsyncSession = Depends(get_session),
 ) -> Episode:
     id = uuid.uuid4()
+    article_text = ""
+    if create_episode_request.article_url:
+        article_text = get_article_text(create_episode_request.article_url)
+
+    if create_episode_request.article_text:
+        article_text = create_episode_request.article_text
+
     print(str(id))
-    episode = Episode(
-        id=id,
-        status="started",
-        url="",
-        article_text=create_episode_request.article_text,
-    )
+    episode = Episode(id=id, status="started", url="", article_text=article_text)
     session.add(episode)
     await session.commit()
     await session.refresh(episode)
@@ -191,6 +202,17 @@ async def episode_get(
     if episode is None:
         return Episode(id=uuid.UUID(id), status="not found", url="", article_text="")
     return episode
+
+
+def get_article_text(url: str) -> str:
+    import trafilatura
+
+    response = trafilatura.fetch_url(url)
+    if type(response) is not str:
+        raise Exception("response is not a string")
+
+    t = trafilatura.bare_extraction(response)
+    return t["text"]
 
 
 def main():
