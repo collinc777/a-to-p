@@ -46,6 +46,7 @@ function usePollEpisode() {
 
 export function CreateEpisode() {
   const { episodeId, setEpisodeId, url, episodeLoading } = usePollEpisode();
+  const [formSubmitting, setFormSubmitting] = useState<boolean>(false);
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
       <header className="w-full py-6 px-4 bg-white border-b dark:bg-gray-900 dark:border-gray-800">
@@ -60,6 +61,7 @@ export function CreateEpisode() {
           <form
             className="w-full max-w-lg mx-auto space-y-4"
             onSubmit={async (e) => {
+              setFormSubmitting(true);
               e.preventDefault();
               const text = e.target.inputText.value;
               let payload = {};
@@ -79,6 +81,7 @@ export function CreateEpisode() {
               ).json();
               const epId = await response["id"];
               setEpisodeId(epId);
+              setFormSubmitting(false);
             }}
           >
             <Input
@@ -87,7 +90,11 @@ export function CreateEpisode() {
               placeholder="Paste your text or URL here"
               type="text"
             />
-            <Button className="w-full" type="submit">
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={episodeLoading || formSubmitting}
+            >
               Generate Podcast Episode
             </Button>
           </form>
@@ -95,6 +102,7 @@ export function CreateEpisode() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               Your Podcast Episode
             </h2>
+            <p>Episode generation takes around 3 minutes</p>
             <div className="flex items-center space-x-4">
               {episodeLoading && (
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
