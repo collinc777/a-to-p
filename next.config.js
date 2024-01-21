@@ -25,7 +25,7 @@ const nextConfig = {
       },
       {
         source: "/ingest/:path*",
-        destination: "https://app.posthog.com",
+        destination: "https://app.posthog.com/:path*",
       },
     ];
   },
