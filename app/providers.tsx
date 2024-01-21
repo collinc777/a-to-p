@@ -9,6 +9,7 @@ if (typeof window !== "undefined") {
     api_host: `${window.location.origin}/ingest`,
     ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     capture_pageview: false, // Disable automatic pageview capture, as we capture manually
+    autocapture: true,
   });
 }
 
