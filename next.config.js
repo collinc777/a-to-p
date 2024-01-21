@@ -23,6 +23,10 @@ const nextConfig = {
             ? "http://localhost:8000/openapi.json"
             : `${process.env.PROD_API_ENDPOINT}/api/openapi.json`,
       },
+      {
+        source: "/ingest/:path*",
+        destination: "https://app.posthog.com",
+      },
     ];
   },
 };
