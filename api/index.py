@@ -52,15 +52,6 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 app = FastAPI()
 
 
-async def generate_episode(article_text: str, episode_id: str) -> str:
-    transcript_body = await generate_transcript_body(article_text)
-    provider = get_tts_provider("openai")
-    url = await generate_audio(
-        transcript=transcript_body, provider=provider, episode_id=episode_id
-    )
-    return url
-
-
 async def generate_transcript_body(article_text: str):
     from llama_index.llms import OpenAI
 
@@ -161,11 +152,18 @@ async def generate_episode_with_id(id: str):
         episode = await crud_episode.update(
             session, db_obj=episode, obj_in={"status": "processing"}
         )
-        result = await generate_episode(episode.article_text, id)
-        await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "done", "url": result}
+        transcript_body = await generate_transcript_body(episode.article_text)
+        episode = await crud_episode.update(
+            session, db_obj=episode, obj_in={"transcript": transcript_body}
         )
-        return result
+        provider = get_tts_provider("openai")
+        url = await generate_audio(
+            transcript=transcript_body, provider=provider, episode_id=id
+        )
+        await crud_episode.update(
+            session, db_obj=episode, obj_in={"status": "done", "url": url}
+        )
+        return url
 
 
 @app.post("/api/episode_create_task")

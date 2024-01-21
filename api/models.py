@@ -1,7 +1,9 @@
-from typing import Literal, List
+from typing import Literal, List, Optional
 import uuid
 from pydantic import BaseModel
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Column
+
+from api.sql_model_utils import pydantic_column_type
 
 
 Speaker = Literal["narrator", "jake", "emily"]
@@ -29,3 +31,6 @@ class Episode(SQLModelBaseModel, table=True):
     status: str
     url: str = Field(default=None, nullable=True)
     article_text: str
+    transcript: Optional[Transcript] = Field(
+        sa_column=Column(pydantic_column_type(Transcript)), default=None
+    )
