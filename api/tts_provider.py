@@ -19,7 +19,7 @@ class OpenAITTSProvider(TTSProvider):
     def __init__(self):
         import openai
 
-        self.client = openai.OpenAI()
+        self.client = openai.AsyncOpenAI()
 
     async def speak(self, text: str, speaker: Speaker) -> bytes:
         import openai

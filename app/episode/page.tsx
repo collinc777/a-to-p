@@ -25,6 +25,7 @@ function usePollEpisode() {
 
 export default function EpisodePage() {
   const [articleText, setArticleText] = useState<string>("");
+  const [articleURL, setArticleURL] = useState<string>("");
   const { episodeId, setEpisodeId, url } = usePollEpisode();
   return (
     <main>
@@ -57,6 +58,34 @@ export default function EpisodePage() {
           }}
         >
           Generate Episode
+        </button>
+
+        {/* input for article_url */}
+        <input
+          className="text-black"
+          type="text"
+          value={articleURL}
+          onChange={(e) => setArticleURL(e.target.value)}
+        />
+        <button
+          onClick={async () => {
+            const response = await (
+              await fetch("/api/episode_create_task", {
+                method: "POST",
+                body: JSON.stringify({
+                  article_url: articleURL,
+                }),
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              })
+            ).json();
+            console.log({ response });
+            const episodeId = await response["id"];
+            setEpisodeId(episodeId);
+          }}
+        >
+          press me
         </button>
         {url && <AudioPlayer url={url} />}
       </div>
