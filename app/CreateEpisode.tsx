@@ -87,7 +87,7 @@ export function CreateEpisode() {
             }}
           >
             <Label htmlFor="inputText">
-              Paste in an article URL or some text to generate a podcast from it
+              Paste an article URL or some text to generate a podcast from it
             </Label>
             <Input
               name="inputText"
