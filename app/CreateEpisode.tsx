@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { FormControl } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 async function fetchEpisode(episodeId: any) {
   return await (
     await fetch(`/api/episode/${episodeId}`, {
@@ -84,6 +86,9 @@ export function CreateEpisode() {
               setFormSubmitting(false);
             }}
           >
+            <Label htmlFor="inputText">
+              Paste in an article URL or some text to generate a podcast from it
+            </Label>
             <Input
               name="inputText"
               className="w-full"
