@@ -54,7 +54,7 @@ export function CreateEpisode() {
       <header className="w-full py-6 px-4 bg-white border-b dark:bg-gray-900 dark:border-gray-800">
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Podcast Generator
+            Article to Podcast
           </h1>
         </div>
       </header>
