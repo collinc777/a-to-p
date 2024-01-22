@@ -32,8 +32,8 @@ class OpenAITTSProvider(TTSProvider):
 
     def _get_voice_for_speaker(self, speaker: Speaker):
         speaker_to_voice = {
-            "narrator": "alloy",
-            "jake": "onyx",
+            "narrator": "onyx",
+            "jake": "echo",
             "emily": "nova",
         }
         return speaker_to_voice.get(speaker, "alloy")  # type: ignore
