@@ -14,6 +14,7 @@ from pydantic import BaseModel, HttpUrl, model_validator, root_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 from api.models import Episode, Transcript
+import sentry_sdk
 
 from api.tts_provider import get_tts_provider, TTSProvider
 
@@ -33,12 +34,19 @@ class Settings(BaseSettings):
     aws_default_region: Optional[str] = None
     replicate_api_token: Optional[str] = None
     database_url: Optional[str] = None
+    sentry_dsn: Optional[str] = None
 
 
 @lru_cache()
 def get_settings():
     return Settings()
 
+
+sentry_sdk.init(
+    dsn=get_settings().sentry_dsn,
+    traces_sample_rate=0.0,
+    profiles_sample_rate=0.0,
+)
 
 engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
 
