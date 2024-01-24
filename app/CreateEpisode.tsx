@@ -7,7 +7,6 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { FormControl } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 async function fetchEpisode(episodeId: any) {
   return await (
@@ -27,13 +26,18 @@ function usePollEpisode() {
   const [episodeId, setEpisodeId] = useState<string>("");
   const [url, setUrl] = useState<string>("");
   const [episodeLoading, setEpisodeLoading] = useState<boolean>(false);
+  const [transcript, setTranscript] = useState<string>("");
 
   useEffect(() => {
     if (episodeId) {
       setEpisodeLoading(true);
       const interval = setInterval(async () => {
         const episode = await fetchEpisode(episodeId);
-        const episodeUrl = await episode["url"];
+        const transcriptResponse = episode["transcript"];
+        if (transcriptResponse) {
+          setTranscript(transcriptResponse);
+        }
+        const episodeUrl = episode["url"];
         if (episodeUrl) {
           setUrl(episodeUrl);
           clearInterval(interval);
@@ -43,11 +47,12 @@ function usePollEpisode() {
     }
   }, [episodeId]);
 
-  return { episodeId, setEpisodeId, url, episodeLoading };
+  return { episodeId, setEpisodeId, url, episodeLoading, transcript };
 }
 
 export function CreateEpisode() {
-  const { episodeId, setEpisodeId, url, episodeLoading } = usePollEpisode();
+  const { episodeId, setEpisodeId, url, episodeLoading, transcript } =
+    usePollEpisode();
   const [formSubmitting, setFormSubmitting] = useState<boolean>(false);
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
@@ -108,11 +113,33 @@ export function CreateEpisode() {
               Your Podcast Episode
             </h2>
             <p>Episode generation takes around 3 minutes</p>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col items-center space-x-4">
+              {url && (
+                <div>
+                  <AudioPlayer url={url} />
+                </div>
+              )}
               {episodeLoading && (
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
               )}
-              {url && <AudioPlayer url={url} />}
+              {episodeLoading && transcript && (
+                <div>
+                  <p>Generating Audio</p>
+                </div>
+              )}
+              {transcript && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    Transcript
+                  </h3>
+                  <p>{JSON.stringify(transcript)}</p>
+                </div>
+              )}
+              {episodeLoading && !transcript && (
+                <div>
+                  <p>Generating Transcript</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

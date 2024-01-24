@@ -147,11 +147,13 @@ async def generate_episode_with_id(id: str):
         if episode is None:
             return
         episode = await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "processing"}
+            session, db_obj=episode, obj_in={"status": "generating_transcript"}
         )
         transcript_body = await generate_transcript_body(episode.article_text)
         episode = await crud_episode.update(
-            session, db_obj=episode, obj_in={"transcript": transcript_body}
+            session,
+            db_obj=episode,
+            obj_in={"transcript": transcript_body, "status": "generating_audio"},
         )
         provider = get_tts_provider("openai")
         url = await generate_audio(

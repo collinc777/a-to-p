@@ -1,12 +1,12 @@
 import abc
-from typing import AsyncIterator, Literal
+from typing import AsyncIterator, Awaitable, Literal
 
 from api.models import Speaker
 
 
 class TTSProvider(abc.ABC):
     @abc.abstractmethod
-    def speak(self, text: str, speaker: Speaker) -> AsyncIterator[bytes]:
+    async def speak(self, text: str, speaker: Speaker) -> bytes:
         raise NotImplementedError("This method should be overridden by subclasses")
 
     @abc.abstractmethod
@@ -21,7 +21,7 @@ class OpenAITTSProvider(TTSProvider):
 
         self.client = openai.AsyncOpenAI()
 
-    async def speak(self, text: str, speaker: Speaker) -> AsyncIterator[bytes]:
+    async def speak(self, text: str, speaker: Speaker) -> bytes:
         import openai
 
         client = openai.AsyncOpenAI()
@@ -31,7 +31,7 @@ class OpenAITTSProvider(TTSProvider):
             input=text,
             voice=voice,  # type: ignore
         )
-        result = await response.aiter_bytes()
+        result = await response.aread()
         return result
 
     def _get_voice_for_speaker(self, speaker: Speaker):
