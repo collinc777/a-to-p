@@ -3,7 +3,7 @@ import uuid
 from .crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
-from typing import Annotated, Optional, AsyncGenerator
+from typing import Annotated, AsyncIterator, List, Optional, AsyncGenerator
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, Field, create_engine, Session
@@ -74,14 +74,11 @@ async def generate_audio(
     settings = get_settings()
     # use tts to generate audio
     lines = transcript.transcript_lines
-    tasks = []
-    for line in lines:
-        # add to tasks
-        tasks.append(provider.speak(text=line.text, speaker=line.speaker))
+    tasks = [provider.speak(text=line.text, speaker=line.speaker) for line in lines]
     import asyncio
     import io
 
-    audios = await asyncio.gather(*tasks)
+    audios = await asyncio.gather(*tasks)  # type: ignore
     # convert byte strings to audio segments and add silence between them
     from pydub import AudioSegment
 
