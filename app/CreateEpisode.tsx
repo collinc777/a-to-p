@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
+import { usePostHog } from "posthog-js/react";
 async function fetchEpisode(episodeId: any) {
   return await (
     await fetch(`/api/episode/${episodeId}`, {
@@ -149,8 +150,14 @@ export function CreateEpisode() {
 }
 
 const AudioPlayer = ({ url }: { url: string }) => {
+  const something = usePostHog();
   return (
-    <audio controls>
+    <audio
+      controls
+      onPlay={() => {
+        something.capture("played");
+      }}
+    >
       <source src={url} type="audio/mpeg" />
       Your browser does not support the audio element.
     </audio>
