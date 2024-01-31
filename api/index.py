@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 import uuid
+
+from fastapi.responses import StreamingResponse
 from .crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
@@ -171,6 +173,44 @@ async def generate_episode_with_id(id: str):
             session, db_obj=episode, obj_in={"status": "done", "url": url}
         )
         return url
+
+
+class Question(BaseModel):
+    prompt: str
+
+
+@app.post("/api/test_stream")
+def test_stream():
+    import instructor
+    import openai
+
+    client = instructor.patch(openai.OpenAI())
+    result = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        stream=True,
+        response_model=instructor.Partial[Transcript],
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a highly skilled podcast writer specializing in transforming blog posts into engaging NPR-style conversational podcast transcripts for a podcast titled ListenArt. Your task is to create a dynamic dialogue between two speakers, Jake and Emily. They will be discussing the content of the provided blog posts in a lively, informative manner. The conversation should mimic the natural flow of a professional podcast, with each speaker offering insights, asking questions, and elaborating on the topics presented. Your output must adhere strictly to a JSON format, ensuring each line of dialogue is correctly attributed to either Jake or Emily. Please use the following JSON structure to organize the conversation, making it easy to parse and understand. Here's the input you need to work with: {text}. Remember, the focus is on creating a natural, NPR-style conversation that both informs and engages the listener, while maintaining impeccable JSON formatting.",
+            },
+            {
+                "role": "user",
+                "content": "The cat with the hat is a cat with a hat. the cat sat on the mat. he ate a rat. he is a cat.",
+            },
+        ],
+    )
+
+    def generate(prompt: str):
+        for message in result:
+            # print(message)
+            yield f"data: { message.model_dump_json() }\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        generate("Produce for me a big lorem ipsum"),
+        media_type="text/event-stream",
+    )
 
 
 @app.post("/api/episode_create_task")

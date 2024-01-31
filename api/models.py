@@ -13,7 +13,7 @@ class TranscriptLine(BaseModel):
     """A line of the transcript"""
 
     # speaker is one of narrator, Jake, or emily
-    speaker: Speaker
+    speaker: str
     text: str
 
 
