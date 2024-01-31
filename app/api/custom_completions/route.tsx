@@ -47,7 +47,7 @@ function parseCustomStream() {
   };
 }
 
-export function CustomStream(
+function CustomStream(
   res: Response,
   cb?: AIStreamCallbacksAndOptions
 ): ReadableStream {

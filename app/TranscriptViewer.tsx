@@ -1,3 +1,5 @@
+import { Key } from "react";
+
 export default function TranscriptViewer({
   transcriptJsonString,
 }: {
@@ -11,7 +13,7 @@ export default function TranscriptViewer({
   const transcriptLines = transcript?.transcript?.transcript_lines;
   return (
     <div className="space-y-3">
-      {transcriptLines?.map((line, idx) => {
+      {transcriptLines?.map((line: any, idx: Key | null | undefined) => {
         const speaker = line.speaker;
         const text = line.text;
         return (
