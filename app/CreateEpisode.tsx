@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { usePostHog } from "posthog-js/react";
+import TranscriptViewer from "./TranscriptViewer";
 async function fetchEpisode(episodeId: any) {
   return await (
     await fetch(`/api/episode/${episodeId}`, {
@@ -81,8 +82,10 @@ export function CreateEpisode() {
               value={input}
               onChange={handleInputChange}
             />
-            <p>{result[result.length - 2]}</p>
             <button type="submit">POST</button>
+            <TranscriptViewer
+              transcriptJsonString={result[result.length - 2]}
+            />
           </form>
 
           <form
