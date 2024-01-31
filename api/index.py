@@ -204,8 +204,11 @@ def test_stream():
     def generate(prompt: str):
         for message in result:
             # print(message)
-            yield f"data: { message.model_dump_json() }\n\n"
+            model_text = message.model_dump_json()
+            yield f"data: {model_text}[SENTINEL]\n\n"
+
         yield "data: [DONE]\n\n"
+        # submit to task
 
     return StreamingResponse(
         generate("Produce for me a big lorem ipsum"),

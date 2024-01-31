@@ -57,6 +57,7 @@ export function CreateEpisode() {
     useCompletion({
       api: "/api/custom_completions",
     });
+  const result = completion.split("[SENTINEL]");
   const { episodeId, setEpisodeId, url, episodeLoading, transcript } =
     usePollEpisode();
   const [formSubmitting, setFormSubmitting] = useState<boolean>(false);
@@ -80,7 +81,7 @@ export function CreateEpisode() {
               value={input}
               onChange={handleInputChange}
             />
-            <p>{completion}</p>
+            <p>{result[result.length - 2]}</p>
             <button type="submit">POST</button>
           </form>
 

@@ -19,20 +19,7 @@ export async function POST(req: Request) {
   const response = await fetch("http://127.0.0.1:8000/api/test_stream", {
     method: "POST",
   });
-  const customStream = CustomStream(response, {
-    onStart: async () => {
-      console.log("Stream started");
-    },
-    onCompletion: async (completion) => {
-      console.log("Completion completed", completion);
-    },
-    onFinal: async (completion) => {
-      console.log("Stream completed", completion);
-    },
-    onToken: async (token) => {
-      console.log("Token received", token);
-    },
-  });
+  const customStream = CustomStream(response);
 
   return new StreamingTextResponse(customStream);
 }
