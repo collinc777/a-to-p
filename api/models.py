@@ -1,4 +1,5 @@
 from typing import Literal, List, Optional
+from datetime import datetime
 import uuid
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel, Column
@@ -13,7 +14,7 @@ class TranscriptLine(BaseModel):
     """A line of the transcript"""
 
     # speaker is one of narrator, Jake, or emily
-    speaker: Speaker
+    speaker: str
     text: str
 
 
@@ -25,6 +26,8 @@ class Transcript(BaseModel):
 
 class SQLModelBaseModel(SQLModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default=datetime.utcnow(), nullable=True)
+    last_edited: datetime = Field(default_factory=datetime.utcnow, nullable=True)
 
 
 class Episode(SQLModelBaseModel, table=True):
