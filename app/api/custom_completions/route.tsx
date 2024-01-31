@@ -13,12 +13,26 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   // Extract the `prompt` from the body of the request
-  const { prompt } = await req.json();
+  const { prompt: text } = await req.json();
+  let payload = {};
+  if (text.startsWith("http")) {
+    payload = { article_url: text };
+  } else {
+    payload = { article_text: text };
+  }
 
   // Request the OpenAI API for the response based on the prompt
-  const response = await fetch("http://127.0.0.1:8000/api/test_stream", {
-    method: "POST",
-  });
+  const response = await fetch(
+    `${process.env.PROD_API_ENDPOINT}/api/stream_episode_create_task`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // note this has to adhere to the Openapi spec
+      body: JSON.stringify(payload),
+    }
+  );
   const customStream = CustomStream(response);
 
   return new StreamingTextResponse(customStream);

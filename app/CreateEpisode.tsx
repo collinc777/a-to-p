@@ -54,14 +54,19 @@ function usePollEpisode() {
 }
 
 export function CreateEpisode() {
-  const { completion, complete, handleInputChange, handleSubmit, input } =
+  const { completion, handleInputChange, handleSubmit, input, isLoading } =
     useCompletion({
       api: "/api/custom_completions",
+      onFinish(prompt, completion) {
+        console.log("on finished called");
+        const splitArr = completion.split("[SENTINEL]");
+        const id = JSON.parse(splitArr[splitArr.length - 2])["id"];
+        setEpisodeId(id);
+      },
     });
   const result = completion.split("[SENTINEL]");
   const { episodeId, setEpisodeId, url, episodeLoading, transcript } =
     usePollEpisode();
-  const [formSubmitting, setFormSubmitting] = useState<boolean>(false);
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
       <header className="w-full py-6 px-4 bg-white border-b dark:bg-gray-900 dark:border-gray-800">
@@ -73,64 +78,26 @@ export function CreateEpisode() {
       </header>
       <main className="flex-1 py-8 px-4 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto">
-          <form onSubmit={handleSubmit}>
-            <label htmlFor="ask-input"></label>
-            <input
-              id="ask-input"
-              className="text-black"
-              type="text"
-              value={input}
-              onChange={handleInputChange}
-            />
-            <button type="submit">POST</button>
-            <TranscriptViewer
-              transcriptJsonString={result[result.length - 2]}
-            />
-          </form>
-
           <form
             className="w-full max-w-lg mx-auto space-y-4"
-            onSubmit={async (e) => {
-              setFormSubmitting(true);
-              e.preventDefault();
-              const text = (e.target as any).inputText.value;
-              let payload = {};
-              if (text.startsWith("http")) {
-                payload = { article_url: text };
-              } else {
-                payload = { article_text: text };
-              }
-              const response = await (
-                await fetch("/api/episode_create_task", {
-                  method: "POST",
-                  body: JSON.stringify(payload),
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                })
-              ).json();
-              const epId = await response["id"];
-              setEpisodeId(epId);
-              setFormSubmitting(false);
-            }}
+            onSubmit={handleSubmit}
           >
             <Label htmlFor="inputText">
               Paste an article URL or some text to generate a podcast from it
             </Label>
             <Input
+              value={input}
+              onChange={handleInputChange}
               name="inputText"
               className="w-full"
               placeholder="Paste your text or URL here"
               type="text"
             />
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={episodeLoading || formSubmitting}
-            >
+            <Button className="w-full" type="submit" disabled={isLoading}>
               Generate Podcast Episode
             </Button>
           </form>
+          <TranscriptViewer transcriptJsonString={result[result.length - 2]} />
           <div className="mt-8 space-y-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               Your Podcast Episode
@@ -175,6 +142,7 @@ const AudioPlayer = ({ url }: { url: string }) => {
   const something = usePostHog();
   return (
     <audio
+      autoFocus
       controls
       onPlay={() => {
         something.capture("played");

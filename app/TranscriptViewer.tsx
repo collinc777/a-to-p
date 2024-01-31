@@ -8,7 +8,7 @@ export default function TranscriptViewer({
     return null;
   }
   const transcript = JSON.parse(transcriptJsonString);
-  const transcriptLines = transcript.transcript_lines;
+  const transcriptLines = transcript?.transcript?.transcript_lines;
   return (
     <div className="space-y-3">
       {transcriptLines?.map((line, idx) => {
