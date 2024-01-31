@@ -271,25 +271,6 @@ async def stream_episode_create_task(
     return StreamingResponse(generate(episode=episode), media_type="text/event-stream")
 
 
-@app.post("/api/test_stream")
-def test_stream():
-    result = generate_transcript_body_instructor("hello world")
-
-    def generate(prompt: str):
-        for message in result:
-            # print(message)
-            model_text = message.model_dump_json()
-            yield f"data: {model_text}[SENTINEL]\n\n"
-
-        yield "data: [DONE]\n\n"
-        # submit to task
-
-    return StreamingResponse(
-        generate("Produce for me a big lorem ipsum"),
-        media_type="text/event-stream",
-    )
-
-
 @app.post("/api/episode_create_task", deprecated=True)
 async def episode_create_task(
     create_episode_request: CreateEpisodeRequest,
