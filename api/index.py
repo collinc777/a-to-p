@@ -1,18 +1,17 @@
-from contextlib import asynccontextmanager
 import uuid
 
 from fastapi.responses import StreamingResponse
 from .crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
-from typing import Annotated, AsyncIterator, List, Optional, AsyncGenerator
+from typing import Annotated, Optional, AsyncGenerator
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.orm import sessionmaker
-from sqlmodel import SQLModel, Field, create_engine, Session
+from sqlmodel import create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
 from llama_index.program import OpenAIPydanticProgram
-from pydantic import BaseModel, HttpUrl, model_validator, root_validator
+from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 from api.models import Episode, Transcript
