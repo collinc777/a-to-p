@@ -41,7 +41,6 @@ async def gen_script_for_section(article_text: str, section: Section, script_so_
         model="gpt-4-turbo-preview",
         stream=True,
         response_model=Iterable[TranscriptLine],
-        max_tokens=3000,
         messages=[{
             "role": "system",
             "content": get_section_system_prompt()
@@ -57,7 +56,6 @@ async def gen_intro(article_text: str, outline: ArticleOutline) -> AsyncGenerato
         model="gpt-4-turbo-preview",
         stream=True,
         response_model=Iterable[TranscriptLine],
-        max_tokens=3000,
         messages=[{
             "role": "system",
             "content": get_intro_system_prompt()
@@ -72,7 +70,6 @@ async def gen_outline(text: str) -> ArticleOutline:
     result = await client.chat.completions.create(
         model="gpt-4-turbo-preview",
         response_model=ArticleOutline,
-        max_tokens=4096,
         messages=[{
             "role": "system",
             "content":  get_outline_system_prompt()
