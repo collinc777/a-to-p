@@ -12,7 +12,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
-# from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
