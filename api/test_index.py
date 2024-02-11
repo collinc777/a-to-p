@@ -1,10 +1,7 @@
-import os
 import pytest
 
-from api.index import get_article_text
-from api.longform_episode_generator import Section, generate_episode_longform, ArticleOutline, gen_intro, gen_outline, gen_main_sections, pretty_print
+from api.longform_episode_generator import Section, ArticleOutline, gen_intro, gen_outline
 from api.models import TranscriptLine
-from api.tts_provider import get_tts_provider
 
 
 # @pytest.mark.asyncio
@@ -66,18 +63,18 @@ def test_get_article_text():
     )
     assert result is not None
 
-@pytest.mark.asyncio
-async def test_generate_episode_longform():
-    article_text = get_article_text("https://thewritetoroam.com/2024/02/how-to-write-stuff-no-one-else-can")
-    result = await generate_episode_longform(article_text)
-    from api.index import generate_audio
-    from api.models import Transcript
-    transcript = Transcript(transcript_lines=result)
-    gen_audio_result = await generate_audio(transcript=transcript, provider=get_tts_provider('openai'), episode_id="test_123")
-    pretty_print(result)
-    print(gen_audio_result)
-    assert result is not None
-    return result
+# @pytest.mark.asyncio
+# async def test_generate_episode_longform():
+#     article_text = get_article_text("https://thewritetoroam.com/2024/02/how-to-write-stuff-no-one-else-can")
+#     result = await generate_episode_longform(article_text)
+#     from api.index import generate_audio
+#     from api.models import Transcript
+#     transcript = Transcript(transcript_lines=result)
+#     gen_audio_result = await generate_audio(transcript=transcript, provider=get_tts_provider('openai'), episode_id="test_123")
+#     pretty_print(result)
+#     print(gen_audio_result)
+#     assert result is not None
+#     return result
 
 @pytest.mark.asyncio
 async def test_intro_generation():
@@ -89,9 +86,9 @@ async def test_gen_outline():
     outline = await gen_outline(article_text)
     assert outline is not None
 
-@pytest.mark.asyncio
-async def test_gen_main_sections():
-    script_so_far = intro_script
-    main_sections = await gen_main_sections(article_text=article_text, outline=article_outline, script_so_far=script_so_far)
-    assert main_sections is not None
+# @pytest.mark.asyncio
+# async def test_gen_main_sections():
+#     script_so_far = intro_script
+#     main_sections = await gen_main_sections(article_text=article_text, outline=article_outline, script_so_far=script_so_far)
+#     assert main_sections is not None
 

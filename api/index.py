@@ -1,6 +1,8 @@
 import uuid
 
 from fastapi.responses import StreamingResponse
+
+from api.longform_episode_generator import generate_episode_longform
 from .crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
@@ -10,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
-from llama_index.program import OpenAIPydanticProgram
+# from llama_index.program import OpenAIPydanticProgram
 from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
@@ -60,30 +62,16 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 app = FastAPI()
 
-
-async def generate_transcript_body(article_text: str):
-    from llama_index.llms import OpenAI
-
-    program = OpenAIPydanticProgram.from_defaults(
-        output_cls=Transcript,  # type: ignore
-        llm=OpenAI(model="gpt-4-1106-preview", temperature=1),
-        prompt_template_str="""You are a highly skilled podcast writer specializing in transforming blog posts into engaging NPR-style conversational podcast transcripts for a podcast titled ListenArt. Your task is to create a dynamic dialogue between two speakers, Jake and Emily. They will be discussing the content of the provided blog posts in a lively, informative manner. The conversation should mimic the natural flow of a professional podcast, with each speaker offering insights, asking questions, and elaborating on the topics presented. Your output must adhere strictly to a JSON format, ensuring each line of dialogue is correctly attributed to either Jake or Emily. Please use the following JSON structure to organize the conversation, making it easy to parse and understand. Here's the input you need to work with: {text}. Remember, the focus is on creating a natural, NPR-style conversation that both informs and engages the listener, while maintaining impeccable JSON formatting.""",
-        verbose=True,
-    )
-    output: Transcript = await program.acall(text=article_text)  # type: ignore
-    return output
-
-
 async def generate_audio(
     *,
     transcript: Transcript,
     provider: TTSProvider,
     episode_id: str,
 ) -> str:
-    settings = get_settings()
     # use tts to generate audio
     lines = transcript.transcript_lines
-    tasks = [provider.speak(text=line.text, speaker=line.speaker.lower()) for line in lines]
+    tasks = [provider.speak(text=line.text, speaker=line.speaker.lower() #type: ignore
+                            ) for line in lines]
     import asyncio
     import io
 
@@ -147,7 +135,6 @@ class CreateEpisodeRequest(BaseModel):
 
 
 async def generate_episode_audio(id: str):
-    settings = get_settings()
     import uuid
 
     # update episode to processing
@@ -165,62 +152,6 @@ async def generate_episode_audio(id: str):
             session, db_obj=episode, obj_in={"status": "done", "url": url}
         )
         return url
-
-
-async def generate_episode_with_id(id: str):
-    settings = get_settings()
-    import uuid
-
-    # update episode to processing
-    async for session in get_session():
-        episode = await crud_episode.get(session, uuid.UUID(id))
-        if episode is None:
-            return
-        episode = await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "generating_transcript"}
-        )
-        transcript_body = await generate_transcript_body(episode.article_text)
-        episode = await crud_episode.update(
-            session,
-            db_obj=episode,
-            obj_in={"transcript": transcript_body, "status": "generating_audio"},
-        )
-        provider = get_tts_provider("openai")
-        url = await generate_audio(
-            transcript=transcript_body, provider=provider, episode_id=id
-        )
-        await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "done", "url": url}
-        )
-        return url
-
-
-class Question(BaseModel):
-    prompt: str
-
-
-def generate_transcript_body_instructor(article_text: str):
-    import instructor
-    import openai
-
-    client = instructor.patch(openai.OpenAI())
-    result = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
-        stream=True,
-        max_tokens=4096,
-        response_model=instructor.Partial[Transcript],
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a highly skilled podcast writer specializing in transforming blog posts into engaging NPR-style conversational podcast transcripts for a podcast titled ListenArt. Your task is to create a dynamic dialogue between two speakers, Jake and Emily. They will be discussing the content of the provided blog posts in a lively, informative, and in depth manner. The conversation should mimic the natural flow of a professional podcast, with each speaker offering insights, asking questions, and elaborating on the topics presented. Your output must adhere strictly to a JSON format, ensuring each line of dialogue is correctly attributed to either Jake or Emily. Please use the following JSON structure to organize the conversation, making it easy to parse and understand. Remember, the focus is on creating a natural, NPR-style conversation that both informs and engages the listener, while maintaining impeccable JSON formatting.",
-            },
-            {
-                "role": "user",
-                "content": f"{article_text}",
-            },
-        ],
-    )
-    return result
 
 
 @app.post("/api/stream_episode_create_task")
@@ -250,12 +181,15 @@ async def stream_episode_create_task(
             session, db_obj=episode, obj_in={"status": "generating_transcript"}
         )
 
-        resulting_transcript = generate_transcript_body_instructor(article_text)
+        resulting_longform = generate_episode_longform(article_text)
         model_ref = None
-        for message in resulting_transcript:
-            payload = {"id": str(id), "transcript": message.model_dump()}
+        messages = []
+        async for message in resulting_longform:
+            messages.append(message)
+            transcript = Transcript(transcript_lines=messages)
+            payload = {"id": str(id), "transcript": transcript.model_dump()}
             yield f"data: {json.dumps(payload)}[SENTINEL]\n\n"
-            model_ref = message
+            model_ref = transcript
         episode = await crud_episode.update(
             session,
             db_obj=episode,
@@ -268,30 +202,6 @@ async def stream_episode_create_task(
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(generate(episode=episode), media_type="text/event-stream")
-
-
-@app.post("/api/episode_create_task", deprecated=True)
-async def episode_create_task(
-    create_episode_request: CreateEpisodeRequest,
-    background_tasks: BackgroundTasks,
-    session: AsyncSession = Depends(get_session),
-) -> Episode:
-    id = uuid.uuid4()
-    article_text = ""
-    if create_episode_request.article_url:
-        article_text = get_article_text(create_episode_request.article_url)
-
-    if create_episode_request.article_text:
-        article_text = create_episode_request.article_text
-
-    print(str(id))
-    episode = Episode(id=id, status="started", url="", article_text=article_text)
-    session.add(episode)
-    await session.commit()
-    await session.refresh(episode)
-    print(episode)
-    background_tasks.add_task(generate_episode_with_id, str(id))
-    return episode
 
 
 @app.get("/api/episode/{id}")
@@ -310,7 +220,7 @@ def get_article_text(url: str) -> str:
     import trafilatura
 
     response = trafilatura.fetch_url(url)
-    if type(response) is not str:
+    if not isinstance(response, str):
         raise Exception("response is not a string")
 
     t = trafilatura.bare_extraction(response)

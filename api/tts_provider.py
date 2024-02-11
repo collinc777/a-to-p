@@ -1,5 +1,5 @@
 import abc
-from typing import AsyncIterator, Awaitable, Literal
+from typing import Literal
 
 import aiolimiter
 
