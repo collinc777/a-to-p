@@ -117,14 +117,6 @@ export function CreateEpisode() {
                   <p>Generating Audio</p>
                 </div>
               )}
-              {transcript && (
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    Transcript
-                  </h3>
-                  <p>{JSON.stringify(transcript)}</p>
-                </div>
-              )}
               {episodeLoading && !transcript && (
                 <div>
                   <p>Generating Transcript</p>
