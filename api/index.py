@@ -83,7 +83,7 @@ async def generate_audio(
     settings = get_settings()
     # use tts to generate audio
     lines = transcript.transcript_lines
-    tasks = [provider.speak(text=line.text, speaker=line.speaker) for line in lines]
+    tasks = [provider.speak(text=line.text, speaker=line.speaker.lower()) for line in lines]
     import asyncio
     import io
 

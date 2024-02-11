@@ -68,7 +68,7 @@ def test_get_article_text():
 
 @pytest.mark.asyncio
 async def test_generate_episode_longform():
-    article_text = get_article_text("https://knowledge.wharton.upenn.edu/article/stew-friedman-new-work-family-choices-men-women/")
+    article_text = get_article_text("https://thewritetoroam.com/2024/02/how-to-write-stuff-no-one-else-can")
     result = await generate_episode_longform(article_text)
     from api.index import generate_audio
     from api.models import Transcript
