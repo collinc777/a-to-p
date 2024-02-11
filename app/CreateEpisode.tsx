@@ -97,6 +97,10 @@ export function CreateEpisode() {
               Generate Podcast Episode
             </Button>
           </form>
+          {isLoading && (
+            // spinner
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+              )}
           <TranscriptViewer transcriptJsonString={result[result.length - 2]} />
           <div className="mt-8 space-y-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
