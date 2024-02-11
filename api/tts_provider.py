@@ -1,5 +1,7 @@
 import abc
-from typing import AsyncIterator, Awaitable, Literal
+from typing import Literal
+
+import aiolimiter
 
 from api.models import Speaker
 
@@ -14,6 +16,7 @@ class TTSProvider(abc.ABC):
         """Get the voice for the speaker specific to the provider"""
         raise NotImplementedError("This method should be overridden by subclasses")
 
+limiter = aiolimiter.AsyncLimiter(50, 60)
 
 class OpenAITTSProvider(TTSProvider):
     def __init__(self):
@@ -23,16 +26,16 @@ class OpenAITTSProvider(TTSProvider):
 
     async def speak(self, text: str, speaker: Speaker) -> bytes:
         import openai
-
-        client = openai.AsyncOpenAI()
-        voice = self._get_voice_for_speaker(speaker)
-        response = await client.audio.speech.create(
-            model="tts-1",
-            input=text,
-            voice=voice,  # type: ignore
-        )
-        result = await response.aread()
-        return result
+        async with limiter:
+            client = openai.AsyncOpenAI()
+            voice = self._get_voice_for_speaker(speaker)
+            response = await client.audio.speech.create(
+                model="tts-1",
+                input=text,
+                voice=voice,  # type: ignore
+            )
+            result = await response.aread()
+            return result
 
     def _get_voice_for_speaker(self, speaker: Speaker):
         speaker_to_voice = {

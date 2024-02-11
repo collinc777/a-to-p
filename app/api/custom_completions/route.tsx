@@ -22,8 +22,9 @@ export async function POST(req: Request) {
   }
 
   // Request the OpenAI API for the response based on the prompt
+  console.log("printed")
   const response = await fetch(
-    `${process.env.PROD_API_ENDPOINT}/api/stream_episode_create_task`,
+    `${process.env.BACKEND_HOST}/api/stream_episode_create_task`,
     {
       method: "POST",
       headers: {
@@ -41,7 +42,6 @@ export async function POST(req: Request) {
 function parseCustomStream() {
   let previous = "";
   return (data: any) => {
-    console.log({ data });
     previous = data;
     return previous;
   };
