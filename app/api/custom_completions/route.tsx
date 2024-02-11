@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   // Request the OpenAI API for the response based on the prompt
   console.log("printed")
   const response = await fetch(
-    `http://localhost:8000/api/stream_episode_create_task`,
+    `${process.env.BACKEND_HOST}/api/stream_episode_create_task`,
     {
       method: "POST",
       headers: {
