@@ -2,6 +2,7 @@ import abc
 from typing import Literal
 
 import aiolimiter
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from api.models import Speaker
 
@@ -24,6 +25,10 @@ class OpenAITTSProvider(TTSProvider):
 
         self.client = openai.AsyncOpenAI()
 
+    @retry(
+        wait=wait_exponential(multiplier=1, max=60),
+        stop=stop_after_attempt(5),
+    )
     async def speak(self, text: str, speaker: Speaker) -> bytes:
         import openai
         async with limiter:
