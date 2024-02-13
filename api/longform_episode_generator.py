@@ -46,7 +46,7 @@ async def gen_script_for_section(article_text: str, section: Section, script_so_
             "content": get_section_system_prompt()
         }, {
             "role": "user",
-            "content": f"Generate a transcript for the section of the podcast based on the below article_text, section outline, and script so far. and article text.\n\nArticle Text: {article_text}\n\nSedction Outline: {section}\n\nScript So Far: {script_so_far}. Make it flow with the script so far. Keep in mind there will be content coming after. No sign off until the conclusion! You are NOT writing the conclusion or ending the episode!"
+            "content": f"Generate a transcript for the CURRENT section of the podcast based on the below article_text, section outline, and script so far. and article text.\n\nArticle Text: {article_text}\n\nSection Outline to base the script on: {section}\n\nScript So Far: {script_so_far}. Make it flow with the script so far. Keep in mind there will be content coming after. No sign off until the conclusion! You are NOT writing the conclusion or ending the episode! Keep it Consice!"
         }]
     ) #type: ignore
     return result
