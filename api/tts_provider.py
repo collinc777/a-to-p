@@ -16,7 +16,7 @@ class TTSProvider(abc.ABC):
         """Get the voice for the speaker specific to the provider"""
         raise NotImplementedError("This method should be overridden by subclasses")
 
-limiter = aiolimiter.AsyncLimiter(50, 60)
+limiter = aiolimiter.AsyncLimiter(49, 60)
 
 class OpenAITTSProvider(TTSProvider):
     def __init__(self):
