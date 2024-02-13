@@ -16,6 +16,17 @@ class ArticleOutline(BaseModel):
     title: str
     sections: list[Section]
 
+async def generate_episode_shortform(text: str):
+    outline = await gen_outline(text)
+    intro = await gen_intro(text, outline)
+    script_so_far = []
+    async for line in intro:
+        yield line
+        script_so_far.append(line)
+    async for line in await gen_shortform_body(text, outline, script_so_far):
+        yield line
+    
+
 async def generate_episode_longform(text: str):
     outline = await gen_outline(text)
     intro = await gen_intro(text, outline)
@@ -51,6 +62,20 @@ async def gen_script_for_section(article_text: str, section: Section, script_so_
     ) #type: ignore
     return result
 
+async def gen_shortform_body(article_text: str, outline: ArticleOutline, script_so_far: List[TranscriptLine]) -> AsyncGenerator[TranscriptLine, None]:
+    return await client.chat.completions.create(
+        model="gpt-4-turbo-preview",
+        stream=True,
+        response_model=Iterable[TranscriptLine],
+        messages=[{
+            "role": "system",
+            "content": get_section_system_prompt()
+        }, {
+            "role": "user",
+            "content": f"Generate a transcript for the body of the podcast based on the below outline and article text.\n\nOutline: {outline}\n\nArticle Text: {article_text}. Make it flow with the script so far. Script so far: {script_so_far}."
+        }]
+    ) #type: ignore
+        
 async def gen_intro(article_text: str, outline: ArticleOutline) -> AsyncGenerator[TranscriptLine, None]:
     result = await client.chat.completions.create(
         model="gpt-4-turbo-preview",

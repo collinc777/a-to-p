@@ -2,7 +2,7 @@ import uuid
 
 from fastapi.responses import StreamingResponse
 
-from api.longform_episode_generator import generate_episode_longform
+from api.longform_episode_generator import generate_episode_longform, generate_episode_shortform
 from .crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
@@ -180,7 +180,7 @@ async def stream_episode_create_task(
             session, db_obj=episode, obj_in={"status": "generating_transcript"}
         )
 
-        resulting_longform = generate_episode_longform(article_text)
+        resulting_longform = generate_episode_shortform(article_text)
         model_ref = None
         messages = []
         async for message in resulting_longform:
