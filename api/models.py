@@ -1,6 +1,7 @@
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
+from click import Option
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, SQLModel, Column
 
@@ -20,7 +21,9 @@ class ExtractedArticle(SQLModel):
     sitename: Optional[str]
     date: Optional[str]
     # allow extra
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra="allow")
+
+
 class TranscriptLine(BaseModel):
     """A line of the transcript"""
 
@@ -42,7 +45,7 @@ class SQLModelBaseModel(SQLModel):
 
 
 class Episode(SQLModelBaseModel, table=True):
-    title: str
+    title: Optional[str]
     status: str
     url: str = Field(default=None, nullable=True)
     article_text: str
