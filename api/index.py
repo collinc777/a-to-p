@@ -2,7 +2,10 @@ import uuid
 
 from fastapi.responses import StreamingResponse
 
-from api.longform_episode_generator import generate_episode_longform, generate_episode_shortform
+from api.longform_episode_generator import (
+    generate_episode_longform,
+    generate_episode_shortform,
+)
 from .crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
@@ -12,10 +15,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, Extra, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
-from api.models import Episode, Transcript
+from api.models import Episode, ExtractedArticle, Transcript
 import sentry_sdk
 
 from api.tts_provider import get_tts_provider, TTSProvider
@@ -61,6 +64,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 app = FastAPI()
 
+
 async def generate_audio(
     *,
     transcript: Transcript,
@@ -69,8 +73,13 @@ async def generate_audio(
 ) -> str:
     # use tts to generate audio
     lines = transcript.transcript_lines
-    tasks = [provider.speak(text=line.text, speaker=line.speaker.lower() #type: ignore
-                            ) for line in lines]
+    tasks = [
+        provider.speak(
+            text=line.text,
+            speaker=line.speaker.lower(),  # type: ignore
+        )
+        for line in lines
+    ]
     import asyncio
     import io
 
@@ -160,15 +169,24 @@ async def stream_episode_create_task(
     session: AsyncSession = Depends(get_session),
 ):
     id = uuid.uuid4()
+    article = None
     article_text = ""
     if create_episode_request.article_url:
-        article_text = get_article_text(create_episode_request.article_url)
+        article = get_extracted_article(create_episode_request.article_url)
+        article_text = article.text
 
     if create_episode_request.article_text:
         article_text = create_episode_request.article_text
 
     print(str(id))
-    episode = Episode(id=id, status="started", url="", article_text=article_text)
+    episode = Episode(
+        id=id,
+        status="started",
+        url="",
+        article_text=article_text,
+        title=article.title if article and article.title else "Untitled",
+        extracted_article=article,
+    )
     session.add(episode)
     await session.commit()
     await session.refresh(episode)
@@ -211,11 +229,17 @@ async def episode_get(
 ) -> Episode:
     episode = await crud_episode.get(session, uuid.UUID(id))
     if episode is None:
-        return Episode(id=uuid.UUID(id), status="not found", url="", article_text="")
+        return Episode(
+            title="Not found",
+            id=uuid.UUID(id),
+            status="not found",
+            url="",
+            article_text="",
+        )
     return episode
 
 
-def get_article_text(url: str) -> str:
+def get_extracted_article(url: str) -> ExtractedArticle:
     import trafilatura
 
     response = trafilatura.fetch_url(url)
@@ -223,7 +247,8 @@ def get_article_text(url: str) -> str:
         raise Exception("response is not a string")
 
     t = trafilatura.bare_extraction(response)
-    return t["text"]
+    article = ExtractedArticle.model_validate(t)
+    return article
 
 
 def main():

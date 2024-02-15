@@ -1,7 +1,7 @@
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, SQLModel, Column
 
 from api.sql_model_utils import pydantic_column_type
@@ -10,6 +10,17 @@ from api.sql_model_utils import pydantic_column_type
 Speaker = Literal["narrator", "jake", "emily"]
 
 
+class ExtractedArticle(SQLModel):
+    title: str
+    text: str
+    author: Optional[str]
+    url: Optional[str]
+    hostname: Optional[str]
+    description: Optional[str]
+    sitename: Optional[str]
+    date: Optional[str]
+    # allow extra
+    model_config = ConfigDict(extra='allow')
 class TranscriptLine(BaseModel):
     """A line of the transcript"""
 
@@ -31,9 +42,13 @@ class SQLModelBaseModel(SQLModel):
 
 
 class Episode(SQLModelBaseModel, table=True):
+    title: str
     status: str
     url: str = Field(default=None, nullable=True)
     article_text: str
     transcript: Optional[Transcript] = Field(
         sa_column=Column(pydantic_column_type(Transcript)), default=None
+    )
+    extracted_article: Optional[ExtractedArticle] = Field(
+        sa_column=Column(pydantic_column_type(ExtractedArticle)), default=None
     )
