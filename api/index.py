@@ -180,7 +180,7 @@ async def stream_episode_create_task(
             session, db_obj=episode, obj_in={"status": "generating_transcript"}
         )
 
-        resulting_longform = generate_episode_shortform(article_text)
+        resulting_longform = generate_episode_longform(article_text)
         model_ref = None
         messages = []
         async for message in resulting_longform:
