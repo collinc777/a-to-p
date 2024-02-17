@@ -65,72 +65,66 @@ export function CreateEpisode() {
       },
     });
   const result = completion.split("[SENTINEL]");
+  console.log(result)
+  const realtimeTranscript = result?.length >= 2 ? JSON.parse(result[result.length - 2])?.transcript : "";
   const { episodeId, setEpisodeId, url, episodeLoading, transcript } =
     usePollEpisode();
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
-      <header className="w-full py-6 px-4 bg-white border-b dark:bg-gray-900 dark:border-gray-800">
-        <div className="container mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Article to Podcast
-          </h1>
-        </div>
-      </header>
-      <main className="flex-1 py-8 px-4 bg-gray-50 dark:bg-gray-800">
-        <div className="container mx-auto">
-          <form
-            className="w-full max-w-lg mx-auto space-y-4"
-            onSubmit={handleSubmit}
-          >
-            <Label htmlFor="inputText">
-              Paste an article URL or some text to generate a podcast from it
-            </Label>
-            <Input
-              value={input}
-              onChange={handleInputChange}
-              name="inputText"
-              className="w-full"
-              placeholder="Paste your text or URL here"
-              type="text"
-            />
-            <Button className="w-full" type="submit" disabled={isLoading}>
-              Generate Podcast Episode
-            </Button>
-          </form>
-          {isLoading && (
-            // spinner
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
-              )}
-          <TranscriptViewer transcriptJsonString={result[result.length - 2]} />
-          <div className="mt-8 space-y-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Your Podcast Episode
-            </h2>
-            <p>Episode generation takes around 3 minutes</p>
-            <div className="flex flex-col items-center space-x-4">
-              {url && (
-                <div>
-                  <AudioPlayer url={url} />
-                </div>
-              )}
-              {episodeLoading && (
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
-              )}
-              {episodeLoading && transcript && (
-                <div>
-                  <p>Generating Audio</p>
-                </div>
-              )}
-              {episodeLoading && !transcript && (
-                <div>
-                  <p>Generating Transcript</p>
-                </div>
-              )}
-            </div>
+
+    <main className="flex-1 py-8 px-4 bg-gray-50 dark:bg-gray-800">
+      <div className="container mx-auto">
+        <form
+          className="w-full max-w-lg mx-auto space-y-4"
+          onSubmit={handleSubmit}
+        >
+          <Label htmlFor="inputText">
+            Paste an article URL or some text to generate a podcast from it
+          </Label>
+          <Input
+            value={input}
+            onChange={handleInputChange}
+            name="inputText"
+            className="w-full"
+            placeholder="Paste your text or URL here"
+            type="text"
+          />
+          <Button className="w-full" type="submit" disabled={isLoading}>
+            Generate Podcast Episode
+          </Button>
+        </form>
+        {isLoading && (
+          // spinner
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+        )}
+        <TranscriptViewer transcript={realtimeTranscript} />
+        <div className="mt-8 space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            Your Podcast Episode
+          </h2>
+          <p>Episode generation takes around 3 minutes</p>
+          <div className="flex flex-col items-center space-x-4">
+            {url && (
+              <div>
+                <AudioPlayer url={url} />
+              </div>
+            )}
+            {episodeLoading && (
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+            )}
+            {episodeLoading && transcript && (
+              <div>
+                <p>Generating Audio</p>
+              </div>
+            )}
+            {episodeLoading && !transcript && (
+              <div>
+                <p>Generating Transcript</p>
+              </div>
+            )}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
 

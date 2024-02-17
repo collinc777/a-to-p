@@ -1,21 +1,21 @@
 import uuid
 
 from fastapi.responses import StreamingResponse
+from starlette.exceptions import WebSocketException
 
 from api.longform_episode_generator import (
     generate_episode_longform,
-    generate_episode_shortform,
 )
-from .crud_episode import crud_episode
+from api.crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
-from typing import Annotated, Optional, AsyncGenerator
+from typing import Annotated, Generator, Optional, AsyncGenerator
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
-from pydantic import BaseModel, ConfigDict, Extra, model_validator
+from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 from api.models import Episode, ExtractedArticle, Transcript
@@ -54,12 +54,15 @@ sentry_sdk.init(
 )
 
 engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
-    async with async_session() as session:  # type: ignore
-        yield session  # type: ignore
+def get_session():
+    db = AsyncSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 app = FastAPI()
@@ -146,7 +149,7 @@ async def generate_episode_audio(id: str):
     import uuid
 
     # update episode to processing
-    async for session in get_session():
+    with get_session() as session:
         episode = await crud_episode.get(session, uuid.UUID(id))
         if episode is None:
             raise ValueError("Episode not found")
@@ -172,7 +175,7 @@ async def stream_episode_create_task(
     article = None
     article_text = ""
     if create_episode_request.article_url:
-        article = get_extracted_article(create_episode_request.article_url)
+        article = extract_article(create_episode_request.article_url)
         article_text = article.text
 
     if create_episode_request.article_text:
@@ -182,7 +185,7 @@ async def stream_episode_create_task(
     episode = Episode(
         id=id,
         status="started",
-        url="",
+        url=article.url if article and article.url else "",
         article_text=article_text,
         title=article.title if article and article.title else "Untitled",
         extracted_article=article,
@@ -239,7 +242,7 @@ async def episode_get(
     return episode
 
 
-def get_extracted_article(url: str) -> ExtractedArticle:
+def extract_article(url: str) -> ExtractedArticle:
     import trafilatura
 
     response = trafilatura.fetch_url(url)

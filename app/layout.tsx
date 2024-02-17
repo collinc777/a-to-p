@@ -23,7 +23,16 @@ export default function RootLayout({
       <PHProvider>
         <body className={inter.className}>
           <PostHogPageView />
-          {children}
+          <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
+            <header className="w-full py-6 px-4 bg-white border-b dark:bg-gray-900 dark:border-gray-800">
+              <div className="container mx-auto flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Article to Podcast
+                </h1>
+              </div>
+            </header>
+            {children}
+          </div>
         </body>
       </PHProvider>
     </html>
