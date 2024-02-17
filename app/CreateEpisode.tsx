@@ -65,6 +65,8 @@ export function CreateEpisode() {
       },
     });
   const result = completion.split("[SENTINEL]");
+  console.log(result)
+  const realtimeTranscript = result?.length >= 2 ? JSON.parse(result[result.length - 2])?.transcript : "";
   const { episodeId, setEpisodeId, url, episodeLoading, transcript } =
     usePollEpisode();
   return (
@@ -94,7 +96,7 @@ export function CreateEpisode() {
           // spinner
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
         )}
-        <TranscriptViewer transcriptJsonString={result[result.length - 2]} />
+        <TranscriptViewer transcript={realtimeTranscript} />
         <div className="mt-8 space-y-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             Your Podcast Episode

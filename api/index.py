@@ -1,10 +1,10 @@
 import uuid
 
 from fastapi.responses import StreamingResponse
+from starlette.exceptions import WebSocketException
 
 from api.longform_episode_generator import (
     generate_episode_longform,
-    generate_episode_shortform,
 )
 from api.crud_episode import crud_episode
 from functools import lru_cache
@@ -172,7 +172,7 @@ async def stream_episode_create_task(
     article = None
     article_text = ""
     if create_episode_request.article_url:
-        article = get_extracted_article(create_episode_request.article_url)
+        article = extract_article(create_episode_request.article_url)
         article_text = article.text
 
     if create_episode_request.article_text:
@@ -182,7 +182,7 @@ async def stream_episode_create_task(
     episode = Episode(
         id=id,
         status="started",
-        url="",
+        url=article.url if article and article.url else "",
         article_text=article_text,
         title=article.title if article and article.title else "Untitled",
         extracted_article=article,
@@ -218,7 +218,9 @@ async def stream_episode_create_task(
         background_tasks.add_task(generate_episode_audio, str(id))
         yield "data: [DONE]\n\n"
 
-    return StreamingResponse(generate(episode=episode), media_type="text/event-stream")
+        return StreamingResponse(
+            generate(episode=episode), media_type="text/event-stream"
+        )
 
 
 @app.get("/api/episode/{id}")
@@ -239,7 +241,7 @@ async def episode_get(
     return episode
 
 
-def get_extracted_article(url: str) -> ExtractedArticle:
+def extract_article(url: str) -> ExtractedArticle:
     import trafilatura
 
     response = trafilatura.fetch_url(url)

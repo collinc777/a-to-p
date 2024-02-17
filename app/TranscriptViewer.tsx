@@ -1,16 +1,12 @@
 import { Key } from "react";
+import { Episode } from "./types";
 
 export default function TranscriptViewer({
-  transcriptJsonString,
+  transcript ,
 }: {
-  transcriptJsonString: string;
+  transcript: Episode["transcript"]
 }) {
-  // check to see if trasncript is parseable
-  if (!transcriptJsonString) {
-    return null;
-  }
-  const transcript = JSON.parse(transcriptJsonString);
-  const transcriptLines = transcript?.transcript?.transcript_lines;
+  const transcriptLines = transcript?.transcript_lines;
   return (
     <div className="space-y-3">
       {transcriptLines?.map((line: any, idx: Key | null | undefined) => {
