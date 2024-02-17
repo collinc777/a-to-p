@@ -1,5 +1,5 @@
 import { CreateEpisode } from "@/app/CreateEpisode";
 
-export default function EpisodePage() {
+export default function HomePage() {
   return <CreateEpisode />;
 }
