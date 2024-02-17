@@ -197,7 +197,7 @@ async def stream_episode_create_task(
     episode = Episode(
         id=id,
         status="started",
-        url=article.url if article and article.url else "",
+        url="",
         article_text=article_text,
         title=article.title if article and article.title else "Untitled",
         extracted_article=article,
