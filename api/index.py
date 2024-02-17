@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import uvicorn
-from pydantic import BaseModel, ConfigDict, Extra, model_validator
+from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 from api.models import Episode, ExtractedArticle, Transcript
@@ -218,9 +218,7 @@ async def stream_episode_create_task(
         background_tasks.add_task(generate_episode_audio, str(id))
         yield "data: [DONE]\n\n"
 
-        return StreamingResponse(
-            generate(episode=episode), media_type="text/event-stream"
-        )
+    return StreamingResponse(generate(episode=episode), media_type="text/event-stream")
 
 
 @app.get("/api/episode/{id}")

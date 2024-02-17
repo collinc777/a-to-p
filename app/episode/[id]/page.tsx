@@ -16,7 +16,7 @@ export default async function EpisodePageDetail({
   const transcript = data.transcript;
   console.log({ data });
   return (
-    <div>
+    <main className="px-4 space-y-2 pb-4">
       <div>
         {data?.url ? (
           <Link
@@ -33,7 +33,19 @@ export default async function EpisodePageDetail({
           </h1>
         )}
       </div>
-      {transcript && <TranscriptViewer transcript={data?.transcript} />}
-    </div>
+      <div>
+        <audio controls src={data?.url} />
+      </div>
+      <div className="grid lg:grid-cols-2 gap-3">
+        <div>
+          <h2 className="text-2xl font-semibold">Transcript</h2>
+          {transcript && <TranscriptViewer transcript={data?.transcript} />}
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold">Article</h2>
+          <p>{data?.article_text}</p>
+        </div>
+      </div>
+    </main>
   );
 }
