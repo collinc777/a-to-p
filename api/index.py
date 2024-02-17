@@ -6,7 +6,7 @@ from api.longform_episode_generator import (
     generate_episode_longform,
     generate_episode_shortform,
 )
-from .crud_episode import crud_episode
+from api.crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
 from typing import Annotated, Optional, AsyncGenerator
