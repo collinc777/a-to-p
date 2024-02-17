@@ -1,4 +1,5 @@
 import pytest
+from api.index import get_session_context
 
 from api.longform_episode_generator import (
     Section,
@@ -186,3 +187,9 @@ async def test_gen_outline():
 #     script_so_far = intro_script
 #     main_sections = await gen_main_sections(article_text=article_text, outline=article_outline, script_so_far=script_so_far)
 #     assert main_sections is not None
+
+
+@pytest.mark.asyncio
+async def test_context():
+    async with get_session_context() as session:
+        session.is_active

@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import uuid
 
 from fastapi.responses import StreamingResponse
@@ -9,7 +10,7 @@ from api.longform_episode_generator import (
 from api.crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
-from typing import Annotated, Generator, Optional, AsyncGenerator
+from typing import Annotated, AsyncIterator, Generator, Optional, AsyncGenerator
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
@@ -53,16 +54,27 @@ sentry_sdk.init(
     profiles_sample_rate=0.0,
 )
 
-engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
+async_engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
 
 
-def get_session():
-    db = AsyncSessionLocal()
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async_session = sessionmaker(
+        bind=async_engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as session:
+        yield session
+
+
+@asynccontextmanager
+async def get_session_context() -> AsyncIterator[AsyncSession]:
+    async_session = sessionmaker(
+        bind=async_engine, class_=AsyncSession, expire_on_commit=False
+    )
+    session: AsyncSession = async_session()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        await session.close()
 
 
 app = FastAPI()
@@ -149,7 +161,7 @@ async def generate_episode_audio(id: str):
     import uuid
 
     # update episode to processing
-    with get_session() as session:
+    async with get_session_context() as session:
         episode = await crud_episode.get(session, uuid.UUID(id))
         if episode is None:
             raise ValueError("Episode not found")
