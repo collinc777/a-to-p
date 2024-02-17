@@ -9,7 +9,7 @@ from api.longform_episode_generator import (
 from api.crud_episode import crud_episode
 from functools import lru_cache
 from io import BytesIO
-from typing import Annotated, Optional, AsyncGenerator
+from typing import Annotated, Generator, Optional, AsyncGenerator
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
@@ -54,12 +54,15 @@ sentry_sdk.init(
 )
 
 engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # type: ignore
-    async with async_session() as session:  # type: ignore
-        yield session  # type: ignore
+def get_session():
+    db = AsyncSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 app = FastAPI()
@@ -146,7 +149,7 @@ async def generate_episode_audio(id: str):
     import uuid
 
     # update episode to processing
-    async for session in get_session():
+    with get_session() as session:
         episode = await crud_episode.get(session, uuid.UUID(id))
         if episode is None:
             raise ValueError("Episode not found")
