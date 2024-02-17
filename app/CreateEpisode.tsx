@@ -11,7 +11,8 @@ import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { usePostHog } from "posthog-js/react";
 import TranscriptViewer from "./TranscriptViewer";
-async function fetchEpisode(episodeId: any) {
+import { Episode } from "./types";
+async function fetchEpisode(episodeId: any): Promise<Episode> {
   return await (
     await fetch(`/api/episode/${episodeId}`, {
       method: "GET",
@@ -29,7 +30,7 @@ function usePollEpisode() {
   const [episodeId, setEpisodeId] = useState<string>("");
   const [url, setUrl] = useState<string>("");
   const [episodeLoading, setEpisodeLoading] = useState<boolean>(false);
-  const [transcript, setTranscript] = useState<string>("");
+  const [transcript, setTranscript] = useState<Episode["transcript"]>(null);
 
   useEffect(() => {
     if (episodeId) {
@@ -65,12 +66,13 @@ export function CreateEpisode() {
       },
     });
   const result = completion.split("[SENTINEL]");
-  console.log(result)
-  const realtimeTranscript = result?.length >= 2 ? JSON.parse(result[result.length - 2])?.transcript : "";
+  const realtimeTranscript =
+    result?.length >= 2
+      ? JSON.parse(result[result.length - 2])?.transcript
+      : "";
   const { episodeId, setEpisodeId, url, episodeLoading, transcript } =
     usePollEpisode();
   return (
-
     <main className="flex-1 py-8 px-4 bg-gray-50 dark:bg-gray-800">
       <div className="container mx-auto">
         <form

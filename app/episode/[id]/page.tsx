@@ -14,7 +14,6 @@ export default async function EpisodePageDetail({
 }) {
   const data = await getEpisode(params.id);
   const transcript = data.transcript;
-  console.log({ data });
   return (
     <main className="px-4 space-y-2 pb-4">
       <div>
