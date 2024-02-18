@@ -1,4 +1,5 @@
 from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, Union
+from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -25,7 +26,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    async def get(self, db: Session, id: Any) -> Optional[ModelType]:
+    async def get(self, db: Session, id: str | UUID) -> Optional[ModelType]:
+        if isinstance(id, str):
+            id = UUID(id)
         result = await db.execute(select(self.model).where(self.model.id == id))
         return result.scalars().first()
 
