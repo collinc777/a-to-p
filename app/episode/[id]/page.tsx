@@ -17,9 +17,9 @@ export default async function EpisodePageDetail({
   return (
     <main className="px-4 space-y-2 pb-4">
       <div>
-        {data?.url ? (
+        {data?.extracted_article?.url ? (
           <Link
-            href={data?.url}
+            href={data?.extracted_article?.url}
             className="text-blue-500 hover:text-blue-700 underline"
           >
             <h1 className="text-3xl font-bold">

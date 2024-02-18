@@ -222,14 +222,14 @@ async def stream_episode_create_task(
             payload = {"id": str(id), "transcript": transcript.model_dump()}
             yield f"data: {json.dumps(payload)}[SENTINEL]\n\n"
             model_ref = transcript
-        episode = await crud_episode.update(
-            session,
-            db_obj=episode,
-            obj_in={
-                "transcript": Transcript(**model_ref.model_dump()),  # type: ignore
-                "status": "generating_audio",
-            },
-        )
+            episode = await crud_episode.update(
+                session,
+                db_obj=episode,
+                obj_in={
+                    "transcript": Transcript(**model_ref.model_dump()),  # type: ignore
+                    "status": "generating_audio",
+                },
+            )
         background_tasks.add_task(generate_episode_audio, str(id))
         yield "data: [DONE]\n\n"
 
