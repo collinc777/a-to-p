@@ -5,12 +5,15 @@ import {
 } from "@aws-sdk/client-s3";
 import { NextApiHandler, NextApiRequest } from "next";
 import { NextRequest } from "next/server";
+// set runtime to edge
+export const runtime = "edge";
 
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
   const fileName = searchParams.get("fileName") as string;
   const s3 = new S3Client({
     endpoint: process.env.BUCKET_URL,
+    region: "WNAM",
     credentials: {
       accessKeyId: process.env.BUCKET_ACCESS_KEY_ID as string,
       secretAccessKey: process.env.BUCKET_SECRET_ACCESS_KEY as string,
