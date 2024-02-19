@@ -1,6 +1,7 @@
 import { Episode } from "@/app/types";
 import EpisodeDetailsPoller from "./EpisodeDetailsPoller";
 import { backendClient } from "@/app/clients";
+import { revalidatePath } from "next/cache";
 
 async function getEpisode(episodeId: string): Promise<Episode> {
   const response = await backendClient.GET("/api/episode/{id}", {
@@ -9,7 +10,6 @@ async function getEpisode(episodeId: string): Promise<Episode> {
         id: episodeId,
       },
     },
-    cache: "no-cache",
   });
   if (response.data) {
     return response.data;

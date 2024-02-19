@@ -6,7 +6,7 @@ export function usePollEpisodeV2(episode: Episode) {
   const [episodeResult, setEpisodeResult] = useState<Episode>(episode);
   useEffect(() => {
     const isPollable = () => {
-      return ["failed", "done"].includes(episode.status);
+      return !["failed", "done"].includes(episode.status);
     };
     if (isPollable() && episode.id) {
       const interval = setInterval(async () => {
