@@ -9,6 +9,10 @@ export interface paths {
     /** Hello World */
     get: operations["hello_world_api_python_get"];
   };
+  "/api/episode_create_task": {
+    /** Episode Create Task */
+    post: operations["episode_create_task_api_episode_create_task_post"];
+  };
   "/api/stream_episode_create_task": {
     /** Stream Episode Create Task */
     post: operations["stream_episode_create_task_api_stream_episode_create_task_post"];
@@ -40,7 +44,7 @@ export interface components {
       /**
        * Created At
        * Format: date-time
-       * @default 2024-02-17T16:19:19.433462
+       * @default 2024-02-18T17:07:42.917700
        */
       created_at?: string;
       /**
@@ -132,6 +136,28 @@ export interface operations {
       200: {
         content: {
           "application/json": unknown;
+        };
+      };
+    };
+  };
+  /** Episode Create Task */
+  episode_create_task_api_episode_create_task_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateEpisodeRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Episode"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

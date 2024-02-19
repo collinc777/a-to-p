@@ -33,7 +33,7 @@ async def generate_episode_task(episode_id):
 
         resulting_longform = generate_episode_longform(episode.article_text)
         messages = []
-        for message in resulting_longform:
+        async for message in resulting_longform:
             messages.append(message)
             transcript = Transcript(transcript_lines=messages)
             episode = await crud_episode.update(

@@ -6,6 +6,7 @@ from api.db import get_session
 
 from api.longform_episode_generator import (
     generate_episode_longform,
+    generate_episode_task,
 )
 from api.crud_episode import crud_episode
 from typing import Annotated, Optional
@@ -50,6 +51,38 @@ class CreateEpisodeRequest(BaseModel):
         if not article_text and not article_url:
             raise ValueError("Either article_text or article_url must be provided")
         return self
+
+
+@app.post("/api/episode_create_task")
+async def episode_create_task(
+    create_episode_request: CreateEpisodeRequest,
+    background_tasks: BackgroundTasks,
+    session: AsyncSession = Depends(get_session),
+) -> Episode:
+    id = uuid.uuid4()
+    article = None
+    article_text = ""
+    if create_episode_request.article_url:
+        article = extract_article(create_episode_request.article_url)
+        article_text = article.text
+
+    if create_episode_request.article_text:
+        article_text = create_episode_request.article_text
+
+    print(str(id))
+    episode = Episode(
+        id=id,
+        status="started",
+        url="",
+        article_text=article_text,
+        title=article.title if article and article.title else "Untitled",
+        extracted_article=article,
+    )
+    session.add(episode)
+    await session.commit()
+    await session.refresh(episode)
+    background_tasks.add_task(generate_episode_task, str(id))
+    return episode
 
 
 @app.post("/api/stream_episode_create_task")

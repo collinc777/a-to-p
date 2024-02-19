@@ -1,6 +1,6 @@
 from io import BytesIO
 from api import crud_episode
-from api.crud_episode import CRUDEpisode
+from api.crud_episode import crud_episode
 from api.db import get_session_context
 from api.models import Transcript
 from api.settings import get_settings
@@ -45,7 +45,7 @@ async def generate_episode_audio(id: str):
 
     # update episode to processing
     async with get_session_context() as session:
-        episode = await CRUDEpisode.get(session, uuid.UUID(id))
+        episode = await crud_episode.get(session, uuid.UUID(id))
         if episode is None:
             raise ValueError("Episode not found")
         if episode.transcript is None:
