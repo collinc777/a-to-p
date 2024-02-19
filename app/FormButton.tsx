@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+// @ts-ignore
 import { useFormStatus } from "react-dom";
 
 export const FormButton = () => {
