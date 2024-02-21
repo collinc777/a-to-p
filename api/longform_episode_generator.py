@@ -31,18 +31,24 @@ async def generate_episode_task(episode_id):
             session, db_obj=episode, obj_in={"status": "generating_transcript"}
         )
 
-        resulting_longform = generate_episode_longform(episode.article_text)
-        messages = []
-        async for message in resulting_longform:
-            messages.append(message)
-            transcript = Transcript(transcript_lines=messages)
+        try:
+            resulting_longform = generate_episode_longform(episode.article_text)
+            messages = []
+            async for message in resulting_longform:
+                messages.append(message)
+                transcript = Transcript(transcript_lines=messages)
+                episode = await crud_episode.update(
+                    session, db_obj=episode, obj_in={"transcript": transcript}
+                )
             episode = await crud_episode.update(
-                session, db_obj=episode, obj_in={"transcript": transcript}
+                session, db_obj=episode, obj_in={"status": "generating_audio"}
             )
-        episode = await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "generating_audio"}
-        )
-        await generate_episode_audio(episode_id)
+            await generate_episode_audio(episode_id)
+        except RuntimeError:
+            episode = await crud_episode.update(
+                session, db_obj=episode, obj_in={"status": "failed"}
+            )
+            raise
 
 
 async def generate_episode_shortform(text: str):
