@@ -1,4 +1,4 @@
-from api.crud_base import CRUDBase
+from api.crud.crud_base import CRUDBase
 from api.models import Episode
 
 

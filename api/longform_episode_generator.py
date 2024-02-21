@@ -6,7 +6,7 @@ from api.audio_generator import generate_episode_audio
 from api.db import get_session_context
 
 from api.models import Transcript, TranscriptLine
-from api.crud_episode import crud_episode
+from api.crud import crud_episode
 
 client = instructor.patch(openai.AsyncClient())
 

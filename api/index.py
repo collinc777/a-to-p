@@ -2,13 +2,13 @@ import uuid
 
 from fastapi.responses import StreamingResponse
 from api.audio_generator import generate_episode_audio
+from api.crud import crud_episode
 from api.db import get_session
 
 from api.longform_episode_generator import (
     generate_episode_longform,
     generate_episode_task,
 )
-from api.crud_episode import crud_episode
 from typing import Annotated, Optional
 from fastapi import BackgroundTasks, Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession

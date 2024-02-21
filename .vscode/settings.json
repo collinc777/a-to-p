@@ -4,10 +4,10 @@
 		{
 			"previewLimit": 50,
 			"server": "localhost",
-			"port": 5432,
+			"port": 5433,
 			"driver": "PostgreSQL",
 			"name": "local_posgres",
-			"database": "postgres",
+			"database": "a-to-p",
 			"username": "postgres",
 			"password": "postgres"
 		}
