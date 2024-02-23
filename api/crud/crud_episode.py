@@ -1,8 +1,8 @@
 from api.crud.crud_base import CRUDBase
-from api.models import Episode
+from api.models import Episode, UpdateEpisodeInput
 
 
-class CRUDEpisode(CRUDBase[Episode, Episode, Episode]):
+class CRUDEpisode(CRUDBase[Episode, Episode, UpdateEpisodeInput]):
     pass
 
 

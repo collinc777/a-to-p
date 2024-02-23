@@ -1,6 +1,7 @@
 "use server";
 import { RedirectType, redirect } from "next/navigation";
 import { backendClient } from "./clients";
+import { UpdateEpisodeInput } from "./types";
 export async function createEpisode(formData: FormData) {
   const text = formData.get("inputText") as string;
   let payload = {};
@@ -16,4 +17,17 @@ export async function createEpisode(formData: FormData) {
   if (id) {
     redirect(`/episode/${id}`, RedirectType.push)
   }
+}
+
+export async function updateEpisode(id: string, payload: UpdateEpisodeInput) {
+  console.log("updateEpisode", id, payload);
+  const result = await backendClient.PATCH(`/api/episode/{id}`, {
+    params: {
+      path: {
+        id,
+      },
+    },
+    body: payload,
+  });
+  console.log("updateEpisode result", result.error);
 }

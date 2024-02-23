@@ -5,6 +5,7 @@ import Link from "next/link";
 import DownloadButton from "./DownloadButton";
 
 export const EpisodeDetails = ({ episode }: { episode: Episode }) => {
+  const isEditable = episode?.status === "done";
   const transcript = episode?.transcript;
   return (
     <main className="px-4 space-y-2 pb-4">
@@ -35,7 +36,11 @@ export const EpisodeDetails = ({ episode }: { episode: Episode }) => {
         <div>
           <h2 className="text-2xl font-semibold">Transcript</h2>
           {transcript ? (
-            <TranscriptViewer transcript={episode?.transcript} />
+            <TranscriptViewer
+              episodeId={episode.id!}
+              transcript={episode?.transcript}
+              isEditable={isEditable}
+            />
           ) : (
             <TranscriptLoading />
           )}

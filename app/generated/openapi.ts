@@ -20,6 +20,8 @@ export interface paths {
   "/api/episode/{id}": {
     /** Episode Get */
     get: operations["episode_get_api_episode__id__get"];
+    /** Episode Patch */
+    patch: operations["episode_patch_api_episode__id__patch"];
   };
 }
 
@@ -44,7 +46,7 @@ export interface components {
       /**
        * Created At
        * Format: date-time
-       * @default 2024-02-18T17:07:42.917700
+       * @default 2024-02-23T03:11:01.744328
        */
       created_at?: string;
       /**
@@ -105,6 +107,19 @@ export interface components {
       speaker: string;
       /** Text */
       text: string;
+    };
+    /** UpdateEpisodeInput */
+    UpdateEpisodeInput: {
+      /** Title */
+      title?: string | null;
+      /** Status */
+      status?: string | null;
+      /** Url */
+      url?: string | null;
+      /** Article Text */
+      article_text?: string | null;
+      transcript?: components["schemas"]["Transcript"] | null;
+      extracted_article?: components["schemas"]["ExtractedArticle"] | null;
     };
     /** ValidationError */
     ValidationError: {
@@ -189,6 +204,33 @@ export interface operations {
     parameters: {
       path: {
         id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Episode"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /** Episode Patch */
+  episode_patch_api_episode__id__patch: {
+    parameters: {
+      path: {
+        id: string;
+      };
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateEpisodeInput"];
       };
     };
     responses: {

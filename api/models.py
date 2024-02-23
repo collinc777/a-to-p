@@ -44,6 +44,15 @@ class SQLModelBaseModel(SQLModel):
     last_edited: datetime = Field(default_factory=datetime.utcnow, nullable=True)
 
 
+class UpdateEpisodeInput(SQLModel):
+    title: Optional[str] = None
+    status: Optional[str] = None
+    url: Optional[str] = None
+    article_text: Optional[str] = None
+    transcript: Optional[Transcript] = None
+    extracted_article: Optional[ExtractedArticle] = None
+
+
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
     status: str

@@ -1,22 +1,50 @@
-import { Key } from "react";
+import { Key, useCallback, useState } from "react";
 import { Episode } from "./types";
+import { updateEpisode } from "./actions";
+import debounce from "lodash.debounce";
 
 export default function TranscriptViewer({
-  transcript ,
+  episodeId,
+  transcript,
+  isEditable,
 }: {
-  transcript: Episode["transcript"]
+  episodeId: string;
+  transcript: Episode["transcript"];
+  isEditable: boolean;
 }) {
   const transcriptLines = transcript?.transcript_lines;
+  const debouncedUpdateEpisode = useCallback(
+    debounce((episodeId, newTranscriptLines) => {
+      updateEpisode(episodeId, {
+        transcript: {
+          transcript_lines: newTranscriptLines as any,
+        },
+      } as any);
+    }, 500), // delay in ms
+    []
+  );
+
+  const handleInput = (idx: number) => async (e: any) => {
+    const newText = e.target.innerText;
+    const newTranscriptLines = transcriptLines?.map((line, i) => {
+      if (i === idx) {
+        return { ...line, text: newText };
+      }
+      return line;
+    });
+    debouncedUpdateEpisode(episodeId, newTranscriptLines);
+  };
   return (
     <div className="space-y-3">
-      {transcriptLines?.map((line: any, idx: Key | null | undefined) => {
-        const speaker = line.speaker;
-        const text = line.text;
+      {transcriptLines?.map((line, idx) => {
         return (
-          <div className="flex space-x-3" key={idx}>
-            <SpeakerBadge speaker={speaker} />
-            <div>{text}</div>
-          </div>
+          <TranscriptLine
+            key={idx}
+            idx={idx}
+            isEditable={isEditable}
+            line={line}
+            handleInput={handleInput(idx)}
+          />
         );
       })}
     </div>
@@ -33,3 +61,29 @@ export const SpeakerBadge = ({ speaker }: { speaker: string }) => {
   };
   return <span className={className()}>{speaker}</span>;
 };
+function TranscriptLine({
+  line,
+  idx,
+  isEditable,
+  handleInput,
+}: {
+  line: any;
+  idx: Key | null | undefined;
+  handleInput: (e: any) => Promise<void>;
+  isEditable: boolean;
+}) {
+  const speaker = line.speaker;
+  const text = line.text;
+  return (
+    <div className="flex space-x-3" key={idx}>
+      <SpeakerBadge speaker={speaker} />
+      {isEditable ? (
+        <p contentEditable={true} onInput={handleInput}>
+          {text}
+        </p>
+      ) : (
+        <p>{text}</p>
+      )}
+    </div>
+  );
+}
