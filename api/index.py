@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from api.models import Episode, ExtractedArticle, Transcript, UpdateEpisodeInput
 import sentry_sdk
 from api.settings import Settings, get_settings
+from api.gql.resolvers import graphql_app
 
 
 load_dotenv()
@@ -31,6 +32,8 @@ sentry_sdk.init(
 
 
 app = FastAPI()
+
+app.include_router(graphql_app, prefix="/graphql")
 
 
 @app.get("/api/python")
