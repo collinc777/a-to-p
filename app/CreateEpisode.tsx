@@ -6,7 +6,7 @@ import { FormButton } from "./FormButton";
 import { createEpisode } from "./actions";
 export function CreateEpisode() {
   return (
-    <main className="flex-1 py-8 px-4 bg-gray-50 dark:bg-gray-800">
+    <main className="flex-1 py-8 px-4">
       <div className="container mx-auto">
         <form
           className="w-full max-w-lg mx-auto space-y-4"

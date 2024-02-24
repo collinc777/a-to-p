@@ -3,6 +3,7 @@ import TranscriptViewer from "@/app/TranscriptViewer";
 import { Episode } from "@/app/types";
 import Link from "next/link";
 import DownloadButton from "./DownloadButton";
+import { Button } from "@/components/ui/button";
 
 export const EpisodeDetails = ({ episode }: { episode: Episode }) => {
   const isEditable = episode?.status === "done";
@@ -25,30 +26,30 @@ export const EpisodeDetails = ({ episode }: { episode: Episode }) => {
           </h1>
         )}
       </div>
-      <div>
+      <div className="flex flex-row items-center space-x-3 flex-wrap space-y-3">
         {episode.url ? (
-          <AudioPlayer url={episode.url} />
+          <>
+            <AudioPlayer url={episode.url} />
+            <DownloadButton url={episode.url} />
+            <Button onClick={() => regenerateAudio(id)}>
+              Regenerate episode
+            </Button>
+          </>
         ) : (
           <p>Audio not available</p>
         )}
       </div>
-      <div className="grid lg:grid-cols-2 gap-3">
-        <div>
-          <h2 className="text-2xl font-semibold">Transcript</h2>
-          {transcript ? (
-            <TranscriptViewer
-              episodeId={episode.id!}
-              transcript={episode?.transcript}
-              isEditable={isEditable}
-            />
-          ) : (
-            <TranscriptLoading />
-          )}
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold">Article</h2>
-          <p>{episode?.article_text}</p>
-        </div>
+      <div>
+        <h2 className="text-2xl font-semibold">Transcript</h2>
+        {transcript ? (
+          <TranscriptViewer
+            episodeId={episode.id!}
+            transcript={episode?.transcript}
+            isEditable={isEditable}
+          />
+        ) : (
+          <TranscriptLoading />
+        )}
       </div>
     </main>
   );

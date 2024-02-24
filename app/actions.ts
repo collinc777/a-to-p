@@ -31,3 +31,7 @@ export async function updateEpisode(id: string, payload: UpdateEpisodeInput) {
   });
   console.log("updateEpisode result", result.error);
 }
+
+export async function regenerateAudio(id: string) {
+  // todo regen audio
+}
