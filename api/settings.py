@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     replicate_api_token: Optional[str] = None
     database_url: Optional[str] = None
     sentry_dsn: Optional[str] = None
+    stage: Optional[str] = None
 
 
 @lru_cache()
