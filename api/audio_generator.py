@@ -1,4 +1,5 @@
 from io import BytesIO
+from uuid import UUID
 from api.models import Episode, Transcript
 from api.settings import get_settings
 from api.tts_provider import TTSProvider, get_tts_provider
@@ -8,7 +9,7 @@ async def generate_audio(
     *,
     transcript: Transcript,
     provider: TTSProvider,
-    episode_id: str,
+    episode_id: UUID,
 ) -> str:
     # use tts to generate audio
     lines = transcript.transcript_lines

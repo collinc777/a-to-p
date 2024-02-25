@@ -65,19 +65,21 @@ async def generate_episode_task(episode_id):
             episode = await crud_episode.update(
                 session,
                 db_obj=episode,
-                obj_in=UpdateEpisodeDBInput(status="generating_audio"),
+                obj_in=UpdateEpisodeDBInput(status=EpisodeStatus.generating_audio),
             )
             url = await generate_episode_audio(episode=episode)
             episode = await crud_episode.update(
                 session,
                 db_obj=episode,
-                obj_in=UpdateEpisodeDBInput(**{"status": "done", "url": url}),
+                obj_in=UpdateEpisodeDBInput(
+                    **{"status": EpisodeStatus.done, "url": url}
+                ),
             )
         except RuntimeError:
             episode = await crud_episode.update(
                 session,
                 db_obj=episode,
-                obj_in=UpdateEpisodeDBInput(status="failed"),
+                obj_in=UpdateEpisodeDBInput(status=EpisodeStatus.failed),
             )
             raise
 

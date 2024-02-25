@@ -62,21 +62,6 @@ async def episode_get(
     return episode
 
 
-@app.patch("/api/episode/{id}")
-async def episode_patch(
-    id: str,
-    update_episode_input: UpdateEpisodeInput,
-    session: AsyncSession = Depends(get_session),
-) -> Episode:
-    episode = await crud_episode.get(session, uuid.UUID(id))
-    if episode is None:
-        raise ValueError("Episode not found")
-    episode = await crud_episode.update(
-        session, db_obj=episode, obj_in=update_episode_input
-    )
-    return episode
-
-
 def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)
     # hello_world()

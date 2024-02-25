@@ -1,3 +1,4 @@
+from typing import Optional
 import uuid
 import strawberry
 
@@ -16,9 +17,11 @@ from api.longform_episode_generator import (
 from api.models import (
     CreateEpisodeRequest,
     Episode,
+    EpisodeStatus,
     ExtractedArticle,
     Transcript,
     TranscriptLine,
+    UpdateEpisodeDBInput,
     UpdateEpisodeInput as UpdateEpisodeInputPydantic,
 )
 
@@ -60,7 +63,7 @@ class Query:
         db = info.context["session"]
         episode = await crud_episode.get(db, id)
         if not episode:
-            return "Episode not found"
+            raise ValueError("Episode not found")
         return EpisodeType.from_pydantic(episode)
 
 
@@ -84,9 +87,10 @@ class UpdateEpisodeInput:
     pass
 
 
-@strawberry.experimental.pydantic.input(CreateEpisodeRequest, all_fields=True)
+@strawberry.input
 class CreateEpisodeInput:
-    pass
+    article_text: Optional[str] = None
+    article_url: Optional[str] = None
 
 
 @strawberry.type
@@ -98,12 +102,12 @@ class Mutation:
         db = info.context["session"]
         episode = await crud_episode.get(db, id)
         if not episode:
-            return "Episode not found"
+            raise ValueError("Episode not found")
 
         pydantic_input = input.to_pydantic()
         # remove none
         pydantic_input = pydantic_input.model_dump(exclude_none=True)
-        pydantic_input = UpdateEpisodeInputPydantic(**pydantic_input)
+        pydantic_input = UpdateEpisodeDBInput(**pydantic_input)
 
         episode = await crud_episode.update(db, db_obj=episode, obj_in=pydantic_input)
         return EpisodeType.from_pydantic(episode)
@@ -129,17 +133,18 @@ class Mutation:
         id = uuid.uuid4()
         article = None
         article_text = ""
-        if input.article_url:
+        if isinstance(input.article_url, str):
             article = extract_article(input.article_url)
             article_text = article.text
 
-        if input.article_text:
+        if isinstance(input.article_text, str):
             article_text = input.article_text
 
+        assert isinstance(article_text, str)
         print(str(id))
         episode = Episode(
             id=id,
-            status="started",
+            status=EpisodeStatus.started,
             url="",
             article_text=article_text,
             title=article.title if article and article.title else "Untitled",
@@ -150,7 +155,7 @@ class Mutation:
         await session.refresh(episode)
         background_tasks = info.context["background_tasks"]
         background_tasks.add_task(generate_episode_task, str(id))
-        return episode
+        return EpisodeType.from_pydantic(episode)
 
 
 schema = strawberry.Schema(Query, Mutation)
