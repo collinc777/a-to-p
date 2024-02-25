@@ -5,7 +5,13 @@ from pydantic import BaseModel
 from api.audio_generator import generate_episode_audio
 from api.db import get_session_context
 
-from api.models import EpisodeStatus, Transcript, TranscriptLine, UpdateEpisodeDBInput
+from api.models import (
+    EpisodeStatus,
+    ExtractedArticle,
+    Transcript,
+    TranscriptLine,
+    UpdateEpisodeDBInput,
+)
 from api.crud import crud_episode
 
 client = instructor.patch(openai.AsyncClient())
@@ -119,6 +125,8 @@ async def gen_script_for_sections(
     result = await client.chat.completions.create(
         model="gpt-4-turbo-preview",
         stream=True,
+        temperature=0.2,
+        presence_penalty=0.5,
         response_model=Iterable[TranscriptLine],
         messages=[
             {"role": "system", "content": get_section_system_prompt()},
@@ -137,6 +145,7 @@ async def gen_shortform_body(
     return await client.chat.completions.create(
         model="gpt-4-turbo-preview",
         stream=True,
+        presence_penalty=0.5,
         response_model=Iterable[TranscriptLine],
         messages=[
             {"role": "system", "content": get_section_system_prompt()},
@@ -213,3 +222,15 @@ Remember, the focus is on creating an NPR-style conversation that informs, engag
 def pretty_print(script: List[TranscriptLine]):
     for line in script:
         print(f"{line.speaker}: {line.text}\n\n")
+
+
+def extract_article(url: str) -> ExtractedArticle:
+    import trafilatura
+
+    response = trafilatura.fetch_url(url)
+    if not isinstance(response, str):
+        raise Exception("response is not a string")
+
+    t = trafilatura.bare_extraction(response)
+    article = ExtractedArticle.model_validate(t)
+    return article

@@ -407,6 +407,30 @@ export type introspection = {
                 }
               }
             ]
+          },
+          {
+            "name": "createEpisodeCreationTask",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "EpisodeType",
+                "ofType": null
+              }
+            },
+            "args": [
+              {
+                "name": "input",
+                "type": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "CreateEpisodeInput",
+                    "ofType": null
+                  }
+                }
+              }
+            ]
           }
         ],
         "interfaces": []
@@ -586,6 +610,30 @@ export type introspection = {
               "name": "String",
               "ofType": null
             }
+          }
+        ]
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "CreateEpisodeInput",
+        "inputFields": [
+          {
+            "name": "articleText",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": "null"
+          },
+          {
+            "name": "articleUrl",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": "null"
           }
         ]
       },

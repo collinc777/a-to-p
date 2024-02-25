@@ -1,21 +1,23 @@
 "use server";
 import { RedirectType, redirect } from "next/navigation";
-import { backendClient } from "./clients";
-import { ResultOf, VariablesOf, graphql } from "./graphql";
+import { VariablesOf, graphql } from "./graphql";
 import { EpisodeFragment } from "./queries";
 import { getClient } from "./ApolloClient";
 export async function createEpisode(formData: FormData) {
   const text = formData.get("inputText") as string;
   let payload = {};
   if (text.startsWith("http")) {
-    payload = { article_url: text };
+    payload = { articleUrl: text };
   } else {
-    payload = { article_text: text };
+    payload = { articleText: text };
   }
-  const response = await backendClient.POST("/api/episode_create_task", {
-    body: payload,
+  const result = await getClient().mutate({
+    mutation: CreateEpisodeMutation,
+    variables: {
+      input: payload,
+    },
   });
-  const id = response.data?.id
+  const id = result?.data?.createEpisodeCreationTask?.id;
   if (id) {
     redirect(`/episode/${id}`, RedirectType.push)
   }
@@ -37,4 +39,12 @@ mutation updateEpisode($id: String!, $input: UpdateEpisodeInput!) {
 
     }
     }`, [EpisodeFragment]);
+
+  const CreateEpisodeMutation = graphql(`
+  mutation createEpisode($input: CreateEpisodeInput!) {
+    createEpisodeCreationTask(input: $input) {
+      id
+    }
+  }
+`);
 

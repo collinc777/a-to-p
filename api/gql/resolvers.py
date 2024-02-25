@@ -1,3 +1,4 @@
+import uuid
 import strawberry
 
 from fastapi import Depends
@@ -7,8 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.crud import crud_episode
 
 from api.db import get_session
-from api.longform_episode_generator import generate_episode_audio_task
+from api.longform_episode_generator import (
+    extract_article,
+    generate_episode_audio_task,
+    generate_episode_task,
+)
 from api.models import (
+    CreateEpisodeRequest,
     Episode,
     ExtractedArticle,
     Transcript,
@@ -78,6 +84,11 @@ class UpdateEpisodeInput:
     pass
 
 
+@strawberry.experimental.pydantic.input(CreateEpisodeRequest, all_fields=True)
+class CreateEpisodeInput:
+    pass
+
+
 @strawberry.type
 class Mutation:
     @strawberry.mutation
@@ -109,6 +120,37 @@ class Mutation:
         )
         background_tasks.add_task(generate_episode_audio_task, episode.id)
         return EpisodeType.from_pydantic(episode)
+
+    @strawberry.mutation
+    async def create_episode_creation_task(
+        self, input: CreateEpisodeInput, info: Info
+    ) -> EpisodeType:
+        session = info.context["session"]
+        id = uuid.uuid4()
+        article = None
+        article_text = ""
+        if input.article_url:
+            article = extract_article(input.article_url)
+            article_text = article.text
+
+        if input.article_text:
+            article_text = input.article_text
+
+        print(str(id))
+        episode = Episode(
+            id=id,
+            status="started",
+            url="",
+            article_text=article_text,
+            title=article.title if article and article.title else "Untitled",
+            extracted_article=article,
+        )
+        session.add(episode)
+        await session.commit()
+        await session.refresh(episode)
+        background_tasks = info.context["background_tasks"]
+        background_tasks.add_task(generate_episode_task, str(id))
+        return episode
 
 
 schema = strawberry.Schema(Query, Mutation)

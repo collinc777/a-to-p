@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 from sqlmodel import Field, SQLModel, Column
 import strawberry
 
@@ -10,6 +10,19 @@ from api.sql_model_utils import pydantic_column_type
 
 
 Speaker = Literal["narrator", "jake", "emily"]
+
+
+class CreateEpisodeRequest(BaseModel):
+    article_text: Optional[str] = None
+    article_url: Optional[str] = None
+    # either article_text or article_url must be provided
+
+    @model_validator(mode="after")
+    def check_article_text_or_url(self):
+        article_text, article_url = (self.article_text, self.article_url)
+        if not article_text and not article_url:
+            raise ValueError("Either article_text or article_url must be provided")
+        return self
 
 
 @strawberry.enum

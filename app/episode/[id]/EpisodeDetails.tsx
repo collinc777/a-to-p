@@ -76,7 +76,7 @@ export const EpisodeDetails = ({
 };
 
 export const TranscriptLoading = () => {
-  return <p>Loading transcript...</p>;
+  return <Skeleton className="w-full h-10" />;
 };
 
 const GenerateAudioMutation = graphql(
