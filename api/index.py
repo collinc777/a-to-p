@@ -13,6 +13,7 @@ from api.models import Episode, ExtractedArticle, UpdateEpisodeInput
 import sentry_sdk
 from api.settings import Settings, get_settings
 from api.gql.resolvers import graphql_app
+from sentry_sdk.integrations.strawberry import StrawberryIntegration
 
 
 load_dotenv()
@@ -22,6 +23,12 @@ if get_settings().stage == "production":
         dsn=get_settings().sentry_dsn,
         traces_sample_rate=0.0,
         profiles_sample_rate=0.0,
+        send_default_pii=True,
+        integrations=[
+            StrawberryIntegration(
+                async_execution=True,
+            ),
+        ],
     )
 
 
