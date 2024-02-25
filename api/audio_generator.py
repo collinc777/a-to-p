@@ -1,6 +1,4 @@
 from io import BytesIO
-from api.crud import crud_episode
-from api.db import get_session_context
 from api.models import Episode, Transcript
 from api.settings import get_settings
 from api.tts_provider import TTSProvider, get_tts_provider

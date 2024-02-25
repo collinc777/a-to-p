@@ -1,7 +1,6 @@
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
 
-from fastapi.responses import StreamingResponse
 from api.crud import crud_episode
 from api.db import get_session
 
@@ -14,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 from pydantic import BaseModel, model_validator
 from dotenv import load_dotenv
-from api.models import Episode, ExtractedArticle, Transcript, UpdateEpisodeInput
+from api.models import Episode, ExtractedArticle, UpdateEpisodeInput
 import sentry_sdk
 from api.settings import Settings, get_settings
 from api.gql.resolvers import graphql_app
