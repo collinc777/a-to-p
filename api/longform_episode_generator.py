@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from api.audio_generator import generate_episode_audio
 from api.db import get_session_context
 
-from api.models import Transcript, TranscriptLine
+from api.models import EpisodeStatus, Transcript, TranscriptLine, UpdateEpisodeDBInput
 from api.crud import crud_episode
 
 client = instructor.patch(openai.AsyncClient())
@@ -20,6 +20,20 @@ class Section(BaseModel):
 class ArticleOutline(BaseModel):
     title: str
     sections: list[Section]
+
+
+async def generate_episode_audio_task(episode_id):
+    async with get_session_context() as session:
+        episode = await crud_episode.get(session, episode_id)
+        if episode is None:
+            raise ValueError("Episode not found")
+        url = await generate_episode_audio(episode=episode)
+        episode = await crud_episode.update(
+            session,
+            db_obj=episode,
+            obj_in=UpdateEpisodeDBInput(url=url, status=EpisodeStatus.done),
+        )
+        return episode
 
 
 async def generate_episode_task(episode_id):
@@ -38,18 +52,26 @@ async def generate_episode_task(episode_id):
                 messages.append(message)
                 transcript = Transcript(transcript_lines=messages)
                 episode = await crud_episode.update(
-                    session, db_obj=episode, obj_in={"transcript": transcript}
+                    session,
+                    db_obj=episode,
+                    obj_in=UpdateEpisodeDBInput(transcript=transcript),
                 )
             episode = await crud_episode.update(
-                session, db_obj=episode, obj_in={"status": "generating_audio"}
+                session,
+                db_obj=episode,
+                obj_in=UpdateEpisodeDBInput(status="generating_audio"),
             )
             url = await generate_episode_audio(episode=episode)
             episode = await crud_episode.update(
-                session, db_obj=episode, obj_in={"status": "completed", "url": url}
+                session,
+                db_obj=episode,
+                obj_in=UpdateEpisodeDBInput(**{"status": "done", "url": url}),
             )
         except RuntimeError:
             episode = await crud_episode.update(
-                session, db_obj=episode, obj_in={"status": "failed"}
+                session,
+                db_obj=episode,
+                obj_in=UpdateEpisodeDBInput(status="failed"),
             )
             raise
 

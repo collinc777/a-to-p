@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { PHProvider } from "./providers";
 import dynamic from "next/dynamic";
 import { ApolloWrapper } from "./ApolloWrapper";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 const inter = Inter({ subsets: ["latin"] });
 const PostHogPageView = dynamic(() => import("./PostHogPageView"), {
@@ -28,9 +30,14 @@ export default function RootLayout({
             <div className="flex flex-col min-h-screen bg-primary text-primary-foreground">
               <header className="w-full py-6 px-4 border-b ">
                 <div className="container mx-auto flex items-center justify-between">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Article to Podcast
-                  </h1>
+                  <Link
+                    href={"/"}
+                    className={buttonVariants({ variant: "link" })}
+                  >
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      Article to Podcast
+                    </h1>
+                  </Link>
                 </div>
               </header>
               {children}

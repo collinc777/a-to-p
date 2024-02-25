@@ -120,8 +120,8 @@ export type introspection = {
             "type": {
               "kind": "NON_NULL",
               "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
+                "kind": "ENUM",
+                "name": "EpisodeStatus",
                 "ofType": null
               }
             },
@@ -179,6 +179,30 @@ export type introspection = {
       {
         "kind": "SCALAR",
         "name": "DateTime"
+      },
+      {
+        "kind": "ENUM",
+        "name": "EpisodeStatus",
+        "enumValues": [
+          {
+            "name": "done"
+          },
+          {
+            "name": "failed"
+          },
+          {
+            "name": "generating_audio"
+          },
+          {
+            "name": "generating_transcript"
+          },
+          {
+            "name": "processing"
+          },
+          {
+            "name": "started"
+          }
+        ]
       },
       {
         "kind": "OBJECT",

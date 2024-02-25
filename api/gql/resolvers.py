@@ -4,10 +4,10 @@ from fastapi import Depends
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 from sqlalchemy.ext.asyncio import AsyncSession
-from api.audio_generator import generate_episode_audio
 from api.crud import crud_episode
 
 from api.db import get_session
+from api.longform_episode_generator import generate_episode_audio_task
 from api.models import (
     Episode,
     ExtractedArticle,
@@ -99,6 +99,7 @@ class Mutation:
 
     @strawberry.mutation
     async def generate_episode_audio(self, episode_id: str, info: Info) -> EpisodeType:
+        background_tasks = info.context["background_tasks"]
         session = info.context["session"]
         episode = await crud_episode.get(session, episode_id)
         if episode is None:
@@ -106,11 +107,8 @@ class Mutation:
         episode = await crud_episode.update(
             session, db_obj=episode, obj_in={"status": "generating_audio"}
         )
-        url = await generate_episode_audio(episode=episode)
-        episode = await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "done", "url": url}
-        )
-        return episode
+        background_tasks.add_task(generate_episode_audio_task, episode.id)
+        return EpisodeType.from_pydantic(episode)
 
 
 schema = strawberry.Schema(Query, Mutation)

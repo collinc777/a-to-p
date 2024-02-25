@@ -1,14 +1,25 @@
+from enum import Enum
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
-from click import Option
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Field, SQLModel, Column
+import strawberry
 
 from api.sql_model_utils import pydantic_column_type
 
 
 Speaker = Literal["narrator", "jake", "emily"]
+
+
+@strawberry.enum
+class EpisodeStatus(str, Enum):
+    done = "done"
+    failed = "failed"
+    generating_audio = "generating_audio"
+    generating_transcript = "generating_transcript"
+    processing = "processing"
+    started = "started"
 
 
 class ExtractedArticle(SQLModel):
@@ -52,9 +63,13 @@ class UpdateEpisodeInput(SQLModel):
     extracted_article: Optional[ExtractedArticle] = None
 
 
+class UpdateEpisodeDBInput(UpdateEpisodeInput):
+    status: Optional[EpisodeStatus] = None
+
+
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
-    status: str
+    status: EpisodeStatus
     url: str = Field(default=None, nullable=True)
     article_text: str
     transcript: Optional[Transcript] = Field(

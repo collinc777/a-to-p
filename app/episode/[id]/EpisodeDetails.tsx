@@ -1,3 +1,4 @@
+"use client";
 import { AudioPlayer } from "@/app/AudioPlayer";
 import TranscriptViewer from "@/app/TranscriptViewer";
 import Link from "next/link";
@@ -5,13 +6,17 @@ import DownloadButton from "./DownloadButton";
 import { Button } from "@/components/ui/button";
 import { FragmentOf, ResultOf, readFragment } from "@/app/graphql";
 import { EpisodeFragment, ExtractedArticleFragment } from "@/app/queries";
-import { regenerateAudio } from "@/app/actions";
+import { Skeleton } from "@/components/ui/skeleton";
+import { graphql } from "@/app/graphql";
+import { useMutation } from "@apollo/client";
 
 export const EpisodeDetails = ({
   episode,
 }: {
   episode: ResultOf<typeof EpisodeFragment>;
 }) => {
+  const [generateAudio] = useMutation(GenerateAudioMutation);
+
   const extractedArticle = readFragment(
     ExtractedArticleFragment,
     episode.extractedArticle
@@ -36,16 +41,22 @@ export const EpisodeDetails = ({
         )}
       </div>
       <div className="flex flex-row items-center space-x-3 flex-wrap space-y-3">
-        {episode.url ? (
+        {episode.url && episode.status === "done" ? (
           <>
             <AudioPlayer url={episode.url} />
             <DownloadButton url={episode.url} />
-            <Button onClick={async () => await regenerateAudio(episode.id)}>
+            <Button
+              onClick={async () => {
+                const result = await generateAudio({
+                  variables: { id: episode.id! },
+                });
+              }}
+            >
               Regenerate Audio
             </Button>
           </>
         ) : (
-          <p>Audio not available</p>
+          <Skeleton className="w-40 h-10" />
         )}
       </div>
       <div>
@@ -67,3 +78,14 @@ export const EpisodeDetails = ({
 export const TranscriptLoading = () => {
   return <p>Loading transcript...</p>;
 };
+
+const GenerateAudioMutation = graphql(
+  `
+    mutation generateAudio($id: String!) {
+      generateEpisodeAudio(episodeId: $id) {
+        ...EpisodeFragment
+      }
+    }
+  `,
+  [EpisodeFragment]
+);
