@@ -17,12 +17,12 @@ from api.gql.resolvers import graphql_app
 
 load_dotenv()
 
-
-sentry_sdk.init(
-    dsn=get_settings().sentry_dsn,
-    traces_sample_rate=0.0,
-    profiles_sample_rate=0.0,
-)
+if get_settings().stage == "production":
+    sentry_sdk.init(
+        dsn=get_settings().sentry_dsn,
+        traces_sample_rate=0.0,
+        profiles_sample_rate=0.0,
+    )
 
 
 app = FastAPI()
