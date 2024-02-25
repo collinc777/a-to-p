@@ -5,6 +5,7 @@ import DownloadButton from "./DownloadButton";
 import { Button } from "@/components/ui/button";
 import { FragmentOf, ResultOf, readFragment } from "@/app/graphql";
 import { EpisodeFragment, ExtractedArticleFragment } from "@/app/queries";
+import { regenerateAudio } from "@/app/actions";
 
 export const EpisodeDetails = ({
   episode,
@@ -39,7 +40,7 @@ export const EpisodeDetails = ({
           <>
             <AudioPlayer url={episode.url} />
             <DownloadButton url={episode.url} />
-            <Button onClick={() => regenerateAudio(id)}>
+            <Button onClick={async () => await regenerateAudio(episode.id)}>
               Regenerate episode
             </Button>
           </>

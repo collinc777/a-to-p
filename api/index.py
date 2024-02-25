@@ -2,12 +2,10 @@ import uuid
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.responses import StreamingResponse
-from api.audio_generator import generate_episode_audio
 from api.crud import crud_episode
 from api.db import get_session
 
 from api.longform_episode_generator import (
-    generate_episode_longform,
     generate_episode_task,
 )
 from typing import Annotated, Optional
@@ -94,65 +92,6 @@ async def episode_create_task(
     await session.refresh(episode)
     background_tasks.add_task(generate_episode_task, str(id))
     return episode
-
-
-@app.post("/api/stream_episode_create_task")
-async def stream_episode_create_task(
-    create_episode_request: CreateEpisodeRequest,
-    background_tasks: BackgroundTasks,
-    session: AsyncSession = Depends(get_session),
-):
-    id = uuid.uuid4()
-    article = None
-    article_text = ""
-    if create_episode_request.article_url:
-        article = extract_article(create_episode_request.article_url)
-        article_text = article.text
-
-    if create_episode_request.article_text:
-        article_text = create_episode_request.article_text
-
-    print(str(id))
-    episode = Episode(
-        id=id,
-        status="started",
-        url="",
-        article_text=article_text,
-        title=article.title if article and article.title else "Untitled",
-        extracted_article=article,
-    )
-    session.add(episode)
-    await session.commit()
-    await session.refresh(episode)
-
-    async def generate(episode: Episode):
-        import json
-
-        episode = await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "generating_transcript"}
-        )
-
-        resulting_longform = generate_episode_longform(article_text)
-        model_ref = None
-        messages = []
-        async for message in resulting_longform:
-            messages.append(message)
-            transcript = Transcript(transcript_lines=messages)
-            payload = {"id": str(id), "transcript": transcript.model_dump()}
-            yield f"data: {json.dumps(payload)}[SENTINEL]\n\n"
-            model_ref = transcript
-            episode = await crud_episode.update(
-                session,
-                db_obj=episode,
-                obj_in={
-                    "transcript": Transcript(**model_ref.model_dump()),  # type: ignore
-                    "status": "generating_audio",
-                },
-            )
-        background_tasks.add_task(generate_episode_audio, str(id))
-        yield "data: [DONE]\n\n"
-
-    return StreamingResponse(generate(episode=episode), media_type="text/event-stream")
 
 
 @app.get("/api/episode/{id}")

@@ -43,7 +43,10 @@ async def generate_episode_task(episode_id):
             episode = await crud_episode.update(
                 session, db_obj=episode, obj_in={"status": "generating_audio"}
             )
-            await generate_episode_audio(episode_id)
+            url = await generate_episode_audio(episode=episode)
+            episode = await crud_episode.update(
+                session, db_obj=episode, obj_in={"status": "completed", "url": url}
+            )
         except RuntimeError:
             episode = await crud_episode.update(
                 session, db_obj=episode, obj_in={"status": "failed"}

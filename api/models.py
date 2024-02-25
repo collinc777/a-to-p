@@ -46,7 +46,6 @@ class SQLModelBaseModel(SQLModel):
 
 class UpdateEpisodeInput(SQLModel):
     title: Optional[str] = None
-    status: Optional[str] = None
     url: Optional[str] = None
     article_text: Optional[str] = None
     transcript: Optional[Transcript] = None

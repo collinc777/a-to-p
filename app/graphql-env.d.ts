@@ -359,6 +359,30 @@ export type introspection = {
                 }
               }
             ]
+          },
+          {
+            "name": "generateEpisodeAudio",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "EpisodeType",
+                "ofType": null
+              }
+            },
+            "args": [
+              {
+                "name": "episodeId",
+                "type": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                }
+              }
+            ]
           }
         ],
         "interfaces": []
@@ -369,15 +393,6 @@ export type introspection = {
         "inputFields": [
           {
             "name": "title",
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": "null"
-          },
-          {
-            "name": "status",
             "type": {
               "kind": "SCALAR",
               "name": "String",

@@ -30,7 +30,11 @@ export async function updateEpisode(input: VariablesOf<typeof UpdateEpisodeMutat
 }
 
 export async function regenerateAudio(id: string) {
-  // todo regen audio
+  const result = await getClient().mutate({
+    mutation: GenerateAudioMutation,
+    variables: { id },
+  })
+  return result
 }
 
 const UpdateEpisodeMutation = graphql(`
@@ -40,3 +44,11 @@ mutation updateEpisode($id: String!, $input: UpdateEpisodeInput!) {
 
     }
     }`, [EpisodeFragment]);
+
+  const GenerateAudioMutation = graphql(`
+  mutation generateAudio($id: String!) {
+    generateEpisodeAudio(episodeId: $id) {
+      ...EpisodeFragment
+    }
+  }
+  `, [EpisodeFragment]);
