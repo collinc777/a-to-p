@@ -41,7 +41,7 @@ export const EpisodeDetails = ({
             <AudioPlayer url={episode.url} />
             <DownloadButton url={episode.url} />
             <Button onClick={async () => await regenerateAudio(episode.id)}>
-              Regenerate episode
+              Regenerate Audio
             </Button>
           </>
         ) : (
