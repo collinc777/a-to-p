@@ -1,14 +1,38 @@
+from enum import Enum
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
-from click import Option
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 from sqlmodel import Field, SQLModel, Column
+import strawberry
 
 from api.sql_model_utils import pydantic_column_type
 
 
 Speaker = Literal["narrator", "jake", "emily"]
+
+
+class CreateEpisodeRequest(BaseModel):
+    article_text: Optional[str] = None
+    article_url: Optional[str] = None
+    # either article_text or article_url must be provided
+
+    @model_validator(mode="after")
+    def check_article_text_or_url(self):
+        article_text, article_url = (self.article_text, self.article_url)
+        if not article_text and not article_url:
+            raise ValueError("Either article_text or article_url must be provided")
+        return self
+
+
+@strawberry.enum
+class EpisodeStatus(str, Enum):
+    done = "done"
+    failed = "failed"
+    generating_audio = "generating_audio"
+    generating_transcript = "generating_transcript"
+    processing = "processing"
+    started = "started"
 
 
 class ExtractedArticle(SQLModel):
@@ -44,9 +68,21 @@ class SQLModelBaseModel(SQLModel):
     last_edited: datetime = Field(default_factory=datetime.utcnow, nullable=True)
 
 
+class UpdateEpisodeInput(SQLModel):
+    title: Optional[str] = None
+    url: Optional[str] = None
+    article_text: Optional[str] = None
+    transcript: Optional[Transcript] = None
+    extracted_article: Optional[ExtractedArticle] = None
+
+
+class UpdateEpisodeDBInput(UpdateEpisodeInput):
+    status: Optional[EpisodeStatus] = None
+
+
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
-    status: str
+    status: EpisodeStatus
     url: str = Field(default=None, nullable=True)
     article_text: str
     transcript: Optional[Transcript] = Field(

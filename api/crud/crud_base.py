@@ -2,7 +2,6 @@ from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, 
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
 from sqlmodel import Column, desc, SQLModel, select
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 

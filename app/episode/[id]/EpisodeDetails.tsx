@@ -1,54 +1,91 @@
+"use client";
 import { AudioPlayer } from "@/app/AudioPlayer";
 import TranscriptViewer from "@/app/TranscriptViewer";
-import { Episode } from "@/app/types";
 import Link from "next/link";
 import DownloadButton from "./DownloadButton";
+import { Button } from "@/components/ui/button";
+import { FragmentOf, ResultOf, readFragment } from "@/app/graphql";
+import { EpisodeFragment, ExtractedArticleFragment } from "@/app/queries";
+import { Skeleton } from "@/components/ui/skeleton";
+import { graphql } from "@/app/graphql";
+import { useMutation } from "@apollo/client";
 
-export const EpisodeDetails = ({ episode }: { episode: Episode }) => {
-  const transcript = episode?.transcript;
+export const EpisodeDetails = ({
+  episode,
+}: {
+  episode: ResultOf<typeof EpisodeFragment>;
+}) => {
+  const [generateAudio] = useMutation(GenerateAudioMutation);
+
+  const extractedArticle = readFragment(
+    ExtractedArticleFragment,
+    episode.extractedArticle
+  );
+  const isEditable = episode?.status === "done";
   return (
     <main className="px-4 space-y-2 pb-4">
       <div>
-        {episode?.extracted_article?.url ? (
+        {extractedArticle?.url ? (
           <Link
-            href={episode?.extracted_article?.url}
+            href={extractedArticle?.url}
             className="text-blue-500 hover:text-blue-700 underline"
           >
             <h1 className="text-3xl font-bold">
-              Generated Episode: {episode?.extracted_article?.title}
+              Generated Episode: {extractedArticle?.title}
             </h1>
           </Link>
         ) : (
           <h1 className="text-xl">
-            Generated Episode: {episode?.extracted_article?.title}
+            Generated Episode: {extractedArticle?.title}
           </h1>
         )}
       </div>
-      <div>
-        {episode.url ? (
-          <AudioPlayer url={episode.url} />
+      <div className="flex flex-row items-center space-x-3 flex-wrap space-y-3">
+        {episode.url && episode.status === "done" ? (
+          <>
+            <AudioPlayer url={episode.url} />
+            <DownloadButton url={episode.url} />
+            <Button
+              onClick={async () => {
+                const result = await generateAudio({
+                  variables: { id: episode.id! },
+                });
+              }}
+            >
+              Regenerate Audio
+            </Button>
+          </>
         ) : (
-          <p>Audio not available</p>
+          <Skeleton className="w-40 h-10" />
         )}
       </div>
-      <div className="grid lg:grid-cols-2 gap-3">
-        <div>
-          <h2 className="text-2xl font-semibold">Transcript</h2>
-          {transcript ? (
-            <TranscriptViewer transcript={episode?.transcript} />
-          ) : (
-            <TranscriptLoading />
-          )}
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold">Article</h2>
-          <p>{episode?.article_text}</p>
-        </div>
+      <div>
+        <h2 className="text-2xl font-semibold">Transcript</h2>
+        {episode.transcript ? (
+          <TranscriptViewer
+            episodeId={episode.id!}
+            transcriptFrag={episode?.transcript}
+            isEditable={isEditable}
+          />
+        ) : (
+          <TranscriptLoading />
+        )}
       </div>
     </main>
   );
 };
 
 export const TranscriptLoading = () => {
-  return <p>Loading transcript...</p>;
+  return <Skeleton className="w-full h-10" />;
 };
+
+const GenerateAudioMutation = graphql(
+  `
+    mutation generateAudio($id: String!) {
+      generateEpisodeAudio(episodeId: $id) {
+        ...EpisodeFragment
+      }
+    }
+  `,
+  [EpisodeFragment]
+);

@@ -1,7 +1,5 @@
 from io import BytesIO
-from api.crud import crud_episode
-from api.db import get_session_context
-from api.models import Transcript
+from api.models import Episode, Transcript
 from api.settings import get_settings
 from api.tts_provider import TTSProvider, get_tts_provider
 
@@ -39,24 +37,15 @@ async def generate_audio(
     return upload_fileobj(result, "a-to-p", f"{ episode_id }.mp3")  # type: ignore
 
 
-async def generate_episode_audio(id: str):
-    import uuid
-
+async def generate_episode_audio(episode: Episode):
     # update episode to processing
-    async with get_session_context() as session:
-        episode = await crud_episode.get(session, uuid.UUID(id))
-        if episode is None:
-            raise ValueError("Episode not found")
-        if episode.transcript is None:
-            raise ValueError("Transcript not found")
-        provider = get_tts_provider("openai")
-        url = await generate_audio(
-            transcript=episode.transcript, provider=provider, episode_id=id
-        )
-        await crud_episode.update(
-            session, db_obj=episode, obj_in={"status": "done", "url": url}
-        )
-        return url
+    if episode.transcript is None:
+        raise ValueError("Transcript not found")
+    provider = get_tts_provider("openai")
+    url = await generate_audio(
+        transcript=episode.transcript, provider=provider, episode_id=episode.id
+    )
+    return url
 
 
 def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> str:

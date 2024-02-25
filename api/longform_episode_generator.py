@@ -5,7 +5,13 @@ from pydantic import BaseModel
 from api.audio_generator import generate_episode_audio
 from api.db import get_session_context
 
-from api.models import Transcript, TranscriptLine
+from api.models import (
+    EpisodeStatus,
+    ExtractedArticle,
+    Transcript,
+    TranscriptLine,
+    UpdateEpisodeDBInput,
+)
 from api.crud import crud_episode
 
 client = instructor.patch(openai.AsyncClient())
@@ -20,6 +26,20 @@ class Section(BaseModel):
 class ArticleOutline(BaseModel):
     title: str
     sections: list[Section]
+
+
+async def generate_episode_audio_task(episode_id):
+    async with get_session_context() as session:
+        episode = await crud_episode.get(session, episode_id)
+        if episode is None:
+            raise ValueError("Episode not found")
+        url = await generate_episode_audio(episode=episode)
+        episode = await crud_episode.update(
+            session,
+            db_obj=episode,
+            obj_in=UpdateEpisodeDBInput(url=url, status=EpisodeStatus.done),
+        )
+        return episode
 
 
 async def generate_episode_task(episode_id):
@@ -38,15 +58,26 @@ async def generate_episode_task(episode_id):
                 messages.append(message)
                 transcript = Transcript(transcript_lines=messages)
                 episode = await crud_episode.update(
-                    session, db_obj=episode, obj_in={"transcript": transcript}
+                    session,
+                    db_obj=episode,
+                    obj_in=UpdateEpisodeDBInput(transcript=transcript),
                 )
             episode = await crud_episode.update(
-                session, db_obj=episode, obj_in={"status": "generating_audio"}
+                session,
+                db_obj=episode,
+                obj_in=UpdateEpisodeDBInput(status="generating_audio"),
             )
-            await generate_episode_audio(episode_id)
+            url = await generate_episode_audio(episode=episode)
+            episode = await crud_episode.update(
+                session,
+                db_obj=episode,
+                obj_in=UpdateEpisodeDBInput(**{"status": "done", "url": url}),
+            )
         except RuntimeError:
             episode = await crud_episode.update(
-                session, db_obj=episode, obj_in={"status": "failed"}
+                session,
+                db_obj=episode,
+                obj_in=UpdateEpisodeDBInput(status="failed"),
             )
             raise
 
@@ -94,6 +125,8 @@ async def gen_script_for_sections(
     result = await client.chat.completions.create(
         model="gpt-4-turbo-preview",
         stream=True,
+        temperature=0.2,
+        presence_penalty=0.5,
         response_model=Iterable[TranscriptLine],
         messages=[
             {"role": "system", "content": get_section_system_prompt()},
@@ -112,6 +145,7 @@ async def gen_shortform_body(
     return await client.chat.completions.create(
         model="gpt-4-turbo-preview",
         stream=True,
+        presence_penalty=0.5,
         response_model=Iterable[TranscriptLine],
         messages=[
             {"role": "system", "content": get_section_system_prompt()},
@@ -188,3 +222,15 @@ Remember, the focus is on creating an NPR-style conversation that informs, engag
 def pretty_print(script: List[TranscriptLine]):
     for line in script:
         print(f"{line.speaker}: {line.text}\n\n")
+
+
+def extract_article(url: str) -> ExtractedArticle:
+    import trafilatura
+
+    response = trafilatura.fetch_url(url)
+    if not isinstance(response, str):
+        raise Exception("response is not a string")
+
+    t = trafilatura.bare_extraction(response)
+    article = ExtractedArticle.model_validate(t)
+    return article

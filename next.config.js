@@ -3,6 +3,13 @@ const nextConfig = {
   rewrites: async () => {
     return [
       {
+        source: "/graphql",
+        destination:
+          process.env.NODE_ENV === "development"
+            ? "http://127.0.0.1:8000/graphql"
+            : `${process.env.PROD_API_ENDPOINT}/graphql`,
+      },
+      {
         source: "/api/:path*",
         destination:
           process.env.NODE_ENV === "development"

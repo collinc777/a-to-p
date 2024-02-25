@@ -1,14 +1,15 @@
-import { Episode } from "@/app/types";
 import EpisodeDetailsPoller from "./EpisodeDetailsPoller";
-import { backendClient } from "@/app/clients";
-import { revalidatePath } from "next/cache";
+import { getClient } from "@/app/ApolloClient";
+import { ResultOf, readFragment } from "@/app/graphql";
+import { EpisodeFragment, EpisodeQuery } from "@/app/queries";
 
-async function getEpisode(episodeId: string): Promise<Episode> {
-  const response = await backendClient.GET("/api/episode/{id}", {
-    params: {
-      path: {
-        id: episodeId,
-      },
+async function getEpisode(
+  episodeId: string
+): Promise<ResultOf<typeof EpisodeQuery>> {
+  const response = await getClient().query({
+    query: EpisodeQuery,
+    variables: {
+      id: episodeId,
     },
   });
   if (response.data) {
@@ -23,5 +24,6 @@ export default async function EpisodeDetailPage({
   params: { id: string };
 }) {
   const data = await getEpisode(params.id);
-  return <EpisodeDetailsPoller episode={data} />;
+  const episode = readFragment(EpisodeFragment, data.episode);
+  return <EpisodeDetailsPoller episode={episode} />;
 }
