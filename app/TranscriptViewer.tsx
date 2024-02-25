@@ -17,11 +17,17 @@ export default function TranscriptViewer({
   const transcriptLines = transcript.transcriptLines;
   const debouncedUpdateEpisode = useCallback(
     debounce((episodeId, newTranscriptLines) => {
-      updateEpisode(episodeId, {
-        transcript: {
-          transcript_lines: newTranscriptLines as any,
+      updateEpisode({
+        id: episodeId,
+        input: {
+          transcript: {
+            transcriptLines: newTranscriptLines.map((line: any) => ({
+              speaker: line.speaker,
+              text: line.text,
+            })),
+          },
         },
-      } as any);
+      });
     }, 500), // delay in ms
     []
   );
@@ -30,7 +36,7 @@ export default function TranscriptViewer({
     const newText = e.target.innerText;
     const newTranscriptLines = transcriptLines?.map((line, i) => {
       if (i === idx) {
-        return { ...line, text: newText };
+        return { speaker: line.speaker, text: newText };
       }
       return line;
     });

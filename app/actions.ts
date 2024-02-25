@@ -1,7 +1,9 @@
 "use server";
 import { RedirectType, redirect } from "next/navigation";
 import { backendClient } from "./clients";
-import { UpdateEpisodeInput } from "./types";
+import { ResultOf, VariablesOf, graphql } from "./graphql";
+import { EpisodeFragment } from "./queries";
+import { getClient } from "./ApolloClient";
 export async function createEpisode(formData: FormData) {
   const text = formData.get("inputText") as string;
   let payload = {};
@@ -19,19 +21,22 @@ export async function createEpisode(formData: FormData) {
   }
 }
 
-export async function updateEpisode(id: string, payload: UpdateEpisodeInput) {
-  console.log("updateEpisode", id, payload);
-  const result = await backendClient.PATCH(`/api/episode/{id}`, {
-    params: {
-      path: {
-        id,
-      },
-    },
-    body: payload,
-  });
-  console.log("updateEpisode result", result.error);
+export async function updateEpisode(input: VariablesOf<typeof UpdateEpisodeMutation>) {
+  const result = await getClient().mutate({
+    mutation: UpdateEpisodeMutation,
+    variables: input,
+  })
+  return result
 }
 
 export async function regenerateAudio(id: string) {
   // todo regen audio
 }
+
+const UpdateEpisodeMutation = graphql(`
+mutation updateEpisode($id: String!, $input: UpdateEpisodeInput!) {
+  updateEpisode(id: $id, input: $input) {
+    ...EpisodeFragment
+
+    }
+    }`, [EpisodeFragment]);
