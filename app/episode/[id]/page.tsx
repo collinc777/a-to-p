@@ -1,11 +1,11 @@
 import EpisodeDetailsPoller from "./EpisodeDetailsPoller";
 import { getClient } from "@/app/ApolloClient";
-import { Episode } from "@/app/fragments/episode";
-import { ResultOf, graphql, readFragment } from "@/app/graphql";
+import { ResultOf, readFragment } from "@/app/graphql";
+import { EpisodeFragment, EpisodeQuery } from "@/app/queries";
 
 async function getEpisode(
   episodeId: string
-): Promise<ResultOf<typeof Episode>> {
+): Promise<ResultOf<typeof EpisodeQuery>> {
   const response = await getClient().query({
     query: EpisodeQuery,
     variables: {
@@ -13,8 +13,7 @@ async function getEpisode(
     },
   });
   if (response.data) {
-    const episode = readFragment(Episode, response.data.episode);
-    return episode;
+    return response.data;
   } else {
     throw new Error("No episode found");
   }
@@ -25,16 +24,6 @@ export default async function EpisodeDetailPage({
   params: { id: string };
 }) {
   const data = await getEpisode(params.id);
-  return <EpisodeDetailsPoller episode={data} />;
+  const episode = readFragment(EpisodeFragment, data.episode);
+  return <EpisodeDetailsPoller episode={episode} />;
 }
-
-const EpisodeQuery = graphql(
-  `
-    query getEpisode($id: String!) {
-      episode(id: $id) {
-        ...EpisodeFragment
-      }
-    }
-  `,
-  [Episode]
-);

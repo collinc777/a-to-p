@@ -1,4 +1,5 @@
 import uuid
+from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.responses import StreamingResponse
 from api.audio_generator import generate_episode_audio
@@ -34,6 +35,13 @@ sentry_sdk.init(
 app = FastAPI()
 
 app.include_router(graphql_app, prefix="/graphql")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/api/python")

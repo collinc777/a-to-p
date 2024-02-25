@@ -1,18 +1,20 @@
 import { Key, useCallback, useState } from "react";
-import { Episode } from "./types";
 import { updateEpisode } from "./actions";
 import debounce from "lodash.debounce";
+import { FragmentOf, readFragment } from "gql.tada";
+import { TranscriptFragment } from "./queries";
 
 export default function TranscriptViewer({
   episodeId,
-  transcript,
+  transcriptFrag,
   isEditable,
 }: {
   episodeId: string;
-  transcript: Episode["transcript"];
+  transcriptFrag: FragmentOf<typeof TranscriptFragment>;
   isEditable: boolean;
 }) {
-  const transcriptLines = transcript?.transcript_lines;
+  const transcript = readFragment(TranscriptFragment, transcriptFrag);
+  const transcriptLines = transcript.transcriptLines;
   const debouncedUpdateEpisode = useCallback(
     debounce((episodeId, newTranscriptLines) => {
       updateEpisode(episodeId, {

@@ -3,6 +3,9 @@ import type { introspection } from './graphql-env.d.ts';
 
 export const graphql = initGraphQLTada<{
   introspection: introspection;
+  scalars: {
+    UUID: string;
+  }
 }>();
 
 export type { FragmentOf, ResultOf, VariablesOf, TadaDocumentNode } from 'gql.tada';

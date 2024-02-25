@@ -6,7 +6,7 @@ const nextConfig = {
         source: "/graphql",
         destination:
           process.env.NODE_ENV === "development"
-            ? "http://localhost:8000/graphql"
+            ? "http://127.0.0.1:8000/graphql"
             : `${process.env.PROD_API_ENDPOINT}/graphql`,
       },
       {
