@@ -1,7 +1,6 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Episode } from "./types";
 import { FormButton } from "./FormButton";
 import { createEpisode } from "./actions";
 export function CreateEpisode() {
