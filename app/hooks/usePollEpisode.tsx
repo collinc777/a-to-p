@@ -13,7 +13,7 @@ export function usePollEpisodeV3(serverSideEpisode: EpisodeType) {
   const episodeFrag = readFragment(EpisodeFragment, data?.episode);
 
   useEffect(() => {
-    if (episodeFrag?.status === "done" || episodeFrag?.status === "failed") {
+    if (!(episodeFrag?.status === "done" || episodeFrag?.status === "failed")) {
       // Start polling
       startPolling(1000); // Poll every 5000 milliseconds (5 seconds)
 
