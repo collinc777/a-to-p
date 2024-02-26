@@ -61,11 +61,11 @@ export const EpisodeDetails = ({
       </div>
       <div>
         <h2 className="text-2xl font-semibold">Transcript</h2>
-        {episode.transcript ? (
+        {episode.transcript && episode.status ? (
           <TranscriptViewer
             episodeId={episode.id!}
             transcriptFrag={episode?.transcript}
-            isEditable={isEditable}
+            episodeStatus={episode.status!}
           />
         ) : (
           <TranscriptLoading />

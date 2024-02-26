@@ -1,17 +1,19 @@
-import { Key, useCallback, useState } from "react";
+import { Key, useCallback, useRef, useState } from "react";
+import { CheckCheckIcon, CheckIcon, FilePenLine, Trash } from "lucide-react";
 import { updateEpisode } from "./actions";
 import debounce from "lodash.debounce";
 import { FragmentOf, readFragment } from "gql.tada";
 import { TranscriptFragment } from "./queries";
+import { Button } from "@/components/ui/button";
 
 export default function TranscriptViewer({
   episodeId,
   transcriptFrag,
-  isEditable,
+  episodeStatus,
 }: {
   episodeId: string;
   transcriptFrag: FragmentOf<typeof TranscriptFragment>;
-  isEditable: boolean;
+  episodeStatus: string;
 }) {
   const transcript = readFragment(TranscriptFragment, transcriptFrag);
   const transcriptLines = transcript.transcriptLines;
@@ -49,7 +51,7 @@ export default function TranscriptViewer({
           <TranscriptLine
             key={idx}
             idx={idx}
-            isEditable={isEditable}
+            episodeStatus={episodeStatus}
             line={line}
             handleInput={handleInput(idx)}
           />
@@ -72,23 +74,43 @@ export const SpeakerBadge = ({ speaker }: { speaker: string }) => {
 function TranscriptLine({
   line,
   idx,
-  isEditable,
+  episodeStatus,
   handleInput,
 }: {
   line: any;
   idx: Key | null | undefined;
   handleInput: (e: any) => Promise<void>;
-  isEditable: boolean;
+  episodeStatus: string;
 }) {
   const speaker = line.speaker;
   const text = line.text;
+  const [isEditing, setIsEditing] = useState(false);
   return (
     <div className="flex space-x-3" key={idx}>
       <SpeakerBadge speaker={speaker} />
-      {isEditable ? (
-        <p contentEditable={true} onInput={handleInput}>
-          {text}
-        </p>
+      {episodeStatus === "done" ? (
+        <>
+          <p className="grow" contentEditable={isEditing}>
+            {text}
+          </p>
+          {!isEditing ? (
+            <Button
+              variant={"ghost"}
+              onClick={() => {
+                setIsEditing(true);
+              }}
+            >
+              <FilePenLine />
+            </Button>
+          ) : (
+            <Button variant={"success"} onClick={() => setIsEditing(false)}>
+              <CheckIcon />
+            </Button>
+          )}
+          <Button variant={"destructive"}>
+            <Trash />
+          </Button>
+        </>
       ) : (
         <p>{text}</p>
       )}

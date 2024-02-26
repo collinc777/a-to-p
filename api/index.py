@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 from dotenv import load_dotenv
-from api.models import Episode, ExtractedArticle, UpdateEpisodeInput
+from api.models import Episode
 import sentry_sdk
 from api.settings import Settings, get_settings
 from api.gql.resolvers import graphql_app
