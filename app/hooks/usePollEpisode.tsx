@@ -39,5 +39,5 @@ export function usePollEpisodeV3(serverSideEpisode: EpisodeType) {
   ]);
 
   // Extract and return the episode fragment, if needed
-  return episodeFrag;
+  return episodeFrag ?? serverSideEpisode;
 }
