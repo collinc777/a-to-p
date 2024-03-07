@@ -1,61 +1,24 @@
-import { Key, useCallback, useRef, useState } from "react";
+import { Key, useCallback, useEffect, useRef, useState } from "react";
 import { CheckCheckIcon, CheckIcon, FilePenLine, Trash } from "lucide-react";
 import { updateEpisode } from "./actions";
 import debounce from "lodash.debounce";
-import { FragmentOf, readFragment } from "gql.tada";
-import { TranscriptFragment } from "./queries";
+import { FragmentOf, ResultOf, readFragment } from "gql.tada";
+import { TranscriptFragment, TranscriptLineFragment } from "./queries";
 import { Button } from "@/components/ui/button";
+import Result from "postcss/lib/result";
 
 export default function TranscriptViewer({
-  episodeId,
-  transcriptFrag,
-  episodeStatus,
+  transcript: transcript,
 }: {
   episodeId: string;
-  transcriptFrag: FragmentOf<typeof TranscriptFragment>;
+  transcript: FragmentOf<typeof TranscriptFragment>;
   episodeStatus: string;
 }) {
-  const transcript = readFragment(TranscriptFragment, transcriptFrag);
   const transcriptLines = transcript.transcriptLines;
-  const debouncedUpdateEpisode = useCallback(
-    debounce((episodeId, newTranscriptLines) => {
-      updateEpisode({
-        id: episodeId,
-        input: {
-          transcript: {
-            transcriptLines: newTranscriptLines.map((line: any) => ({
-              speaker: line.speaker,
-              text: line.text,
-            })),
-          },
-        },
-      });
-    }, 500), // delay in ms
-    []
-  );
-
-  const handleInput = (idx: number) => async (e: any) => {
-    const newText = e.target.innerText;
-    const newTranscriptLines = transcriptLines?.map((line, i) => {
-      if (i === idx) {
-        return { speaker: line.speaker, text: newText };
-      }
-      return line;
-    });
-    debouncedUpdateEpisode(episodeId, newTranscriptLines);
-  };
   return (
     <div className="space-y-3">
       {transcriptLines?.map((line, idx) => {
-        return (
-          <TranscriptLine
-            key={idx}
-            idx={idx}
-            episodeStatus={episodeStatus}
-            line={line}
-            handleInput={handleInput(idx)}
-          />
-        );
+        return <TranscriptLine key={idx} idx={idx} line={line} />;
       })}
     </div>
   );
@@ -74,46 +37,110 @@ export const SpeakerBadge = ({ speaker }: { speaker: string }) => {
 function TranscriptLine({
   line,
   idx,
-  episodeStatus,
-  handleInput,
 }: {
   line: any;
   idx: Key | null | undefined;
-  handleInput: (e: any) => Promise<void>;
-  episodeStatus: string;
 }) {
   const speaker = line.speaker;
-  const text = line.text;
-  const [isEditing, setIsEditing] = useState(false);
   return (
     <div className="flex space-x-3" key={idx}>
       <SpeakerBadge speaker={speaker} />
-      {episodeStatus === "done" ? (
-        <>
-          <p className="grow" contentEditable={isEditing}>
-            {text}
-          </p>
-          {!isEditing ? (
-            <Button
-              variant={"ghost"}
-              onClick={() => {
-                setIsEditing(true);
-              }}
-            >
-              <FilePenLine />
-            </Button>
-          ) : (
-            <Button variant={"success"} onClick={() => setIsEditing(false)}>
-              <CheckIcon />
-            </Button>
-          )}
-          <Button variant={"destructive"}>
-            <Trash />
+      <p>{line.text}</p>
+    </div>
+  );
+}
+
+export function EditTranscriptView({
+  episodeId,
+  transcript,
+}: {
+  episodeId: string;
+  transcript: ResultOf<typeof TranscriptFragment>;
+}) {
+  const [trascriptCopy, setTranscriptCopy] = useState(transcript);
+  const updateLine = async (idx: Key, newText: string) => {
+    const newTranscriptLines = trascriptCopy.transcriptLines.map((line, i) => {
+      if (i === idx) {
+        return { speaker: line.speaker, text: newText };
+      }
+      return line;
+    });
+    const newTrancript = {
+      ...trascriptCopy,
+      transcriptLines: newTranscriptLines,
+    };
+    console.log({ newTrancript });
+    setTranscriptCopy(newTrancript);
+    await updateEpisode({
+      id: episodeId,
+      input: {
+        transcript: newTrancript,
+      },
+    });
+  };
+  return (
+    <div className="space-y-3">
+      {trascriptCopy.transcriptLines.map((line, idx) => {
+        return (
+          <EditableTranscriptLine
+            key={idx}
+            idx={idx}
+            line={line}
+            handleInput={updateLine}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function EditableTranscriptLine({
+  line,
+  idx,
+  handleInput,
+}: {
+  line: ResultOf<typeof TranscriptLineFragment>;
+  idx: Key;
+  handleInput: (idx: Key, newText: string) => Promise<void>;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const ref = useRef<HTMLParagraphElement>(null);
+
+  return (
+    <div className="flex space-x-3" key={idx}>
+      <SpeakerBadge speaker={line.speaker} />
+      <>
+        <p ref={ref} className="grow" contentEditable={isEditing}>
+          {line.text}
+        </p>
+        {!isEditing ? (
+          <Button
+            variant={"ghost"}
+            onClick={() => {
+              setIsEditing(true);
+            }}
+          >
+            <FilePenLine />
           </Button>
-        </>
-      ) : (
-        <p>{text}</p>
-      )}
+        ) : (
+          <Button
+            variant={"success"}
+            onClick={() => {
+              setIsEditing(false);
+              console.log(ref.current?.innerText);
+              const newText = ref.current?.innerText;
+              if (newText) {
+                handleInput(idx, newText);
+              }
+            }}
+          >
+            <CheckIcon />
+          </Button>
+        )}
+        <Button variant={"destructive"}>
+          <Trash />
+        </Button>
+      </>
     </div>
   );
 }

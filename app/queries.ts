@@ -1,7 +1,8 @@
+import { exportTraceState } from "next/dist/trace";
 import {graphql} from "./graphql";
 
 export const ExtractedArticleFragment = graphql(`
-    fragment ExtractedArticleFragment on ExtractedArticleType {
+    fragment ExtractedArticleFragment on ExtractedArticleType @_unmask {
         url
         title
         hostname
@@ -13,17 +14,25 @@ export const ExtractedArticleFragment = graphql(`
     }
     `);
 
-export const TranscriptFragment = graphql(`
-    fragment TranscriptFragment on TranscriptType {
-        transcriptLines {
-        speaker 
+export const TranscriptLineFragment = graphql(` 
+    fragment TranscriptLineFragment on TranscriptLineType @_unmask {
+        speaker
         text
-        }
     }
     `);
+
+
+export const TranscriptFragment = graphql(`
+    fragment TranscriptFragment on TranscriptType @_unmask {
+        transcriptLines {
+          ...TranscriptLineFragment
+          
+        }
+    }
+    `, [ TranscriptLineFragment ]);
   
 export const EpisodeFragment = graphql(`
-  fragment EpisodeFragment on EpisodeType {
+  fragment EpisodeFragment on EpisodeType @_unmask {
     id
     createdAt
     lastEdited

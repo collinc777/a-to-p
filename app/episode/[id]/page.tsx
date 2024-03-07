@@ -3,6 +3,8 @@ import { getClient } from "@/app/ApolloClient";
 import { ResultOf, readFragment } from "@/app/graphql";
 import { EpisodeFragment, EpisodeQuery } from "@/app/queries";
 
+export const dynamic = "force-dynamic";
+
 async function getEpisode(
   episodeId: string
 ): Promise<ResultOf<typeof EpisodeQuery>> {
