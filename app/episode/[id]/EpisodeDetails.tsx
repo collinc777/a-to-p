@@ -10,8 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { graphql } from "@/app/graphql";
 import { useMutation } from "@apollo/client";
 
-export const dynamic = "force-dynamic";
-
 export const EpisodeDetails = ({
   episode,
 }: {
