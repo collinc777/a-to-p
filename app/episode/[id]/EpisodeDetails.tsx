@@ -9,6 +9,7 @@ import { EpisodeFragment, ExtractedArticleFragment } from "@/app/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { graphql } from "@/app/graphql";
 import { useMutation } from "@apollo/client";
+import { revalidatePath } from "next/cache";
 
 export const EpisodeDetails = ({
   episode,
@@ -63,15 +64,18 @@ export const EpisodeDetails = ({
         <h2 className="text-2xl font-semibold">Transcript</h2>
         {episode.transcript && episode.status ? (
           <>
-            <EditTranscriptView
-              transcript={episode?.transcript}
-              episodeId={episode.id}
-            />
-            <TranscriptViewer
-              episodeId={episode.id!}
-              transcript={episode?.transcript}
-              episodeStatus={episode.status!}
-            />
+            {isEditable ? (
+              <EditTranscriptView
+                transcript={episode?.transcript}
+                episodeId={episode.id}
+              />
+            ) : (
+              <TranscriptViewer
+                episodeId={episode.id!}
+                transcript={episode?.transcript}
+                episodeStatus={episode.status!}
+              />
+            )}
           </>
         ) : (
           <TranscriptLoading />

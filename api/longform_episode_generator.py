@@ -37,7 +37,12 @@ async def generate_episode_audio_task(episode_id):
         episode = await crud_episode.update(
             session,
             db_obj=episode,
-            obj_in=UpdateEpisodeDBInput(url=url, status=EpisodeStatus.done),
+            obj_in=UpdateEpisodeDBInput(
+                url=url,
+                status=EpisodeStatus.done,
+                transcript=episode.transcript,
+                episode_hash=episode.computed_episode_hash,
+            ),
         )
         return episode
 
@@ -72,7 +77,12 @@ async def generate_episode_task(episode_id):
                 session,
                 db_obj=episode,
                 obj_in=UpdateEpisodeDBInput(
-                    **{"status": EpisodeStatus.done, "url": url}
+                    **{
+                        "status": EpisodeStatus.done,
+                        "url": url,
+                        "transcript": transcript,
+                        "episode_hash": episode.computed_episode_hash,
+                    }
                 ),
             )
         except RuntimeError:

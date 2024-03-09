@@ -1,8 +1,9 @@
 from enum import Enum
+import hashlib
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, computed_field, model_validator
 from sqlmodel import Field, SQLModel, Column
 import strawberry
 
@@ -54,6 +55,23 @@ class TranscriptLine(BaseModel):
     # speaker is one of narrator, Jake, or emily
     speaker: str
     text: str
+    line_hash: Optional[str] = None
+    audio_url: Optional[str] = None
+
+    @computed_field
+    @property
+    def computed_line_hash(self) -> str:
+        input_str = f"{self.speaker}-{self.text}"
+        hash_object = hashlib.sha256(input_str.encode())
+        hex_dig = hash_object.hexdigest()
+        return hex_dig
+
+    @computed_field
+    @property
+    def audio_url_id(self) -> Optional[str]:
+        if not self.audio_url:
+            return None
+        return self.audio_url.split("/")[-1]
 
 
 class Transcript(BaseModel):
@@ -74,6 +92,7 @@ class UpdateEpisodeInput(SQLModel):
     article_text: Optional[str] = None
     transcript: Optional[Transcript] = None
     extracted_article: Optional[ExtractedArticle] = None
+    episode_hash: Optional[str] = None
 
 
 class UpdateEpisodeDBInput(UpdateEpisodeInput):
@@ -91,3 +110,22 @@ class Episode(SQLModelBaseModel, table=True):
     extracted_article: Optional[ExtractedArticle] = Field(
         sa_column=Column(pydantic_column_type(ExtractedArticle)), default=None
     )
+    episode_hash: Optional[str] = None
+
+    @computed_field
+    @property
+    def computed_episode_hash(self) -> Optional[str]:
+        if self.transcript is None:
+            return None
+        transcript_lines = self.transcript.transcript_lines
+        input_str = f"{transcript_lines}"
+        hash_object = hashlib.sha256(input_str.encode())
+        hex_dig = hash_object.hexdigest()
+        return hex_dig
+
+    @computed_field
+    @property
+    def audio_url_id(self) -> Optional[str]:
+        if not self.url:
+            return None
+        return self.url.split("/")[-1]

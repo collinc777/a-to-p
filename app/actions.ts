@@ -24,6 +24,7 @@ export async function createEpisode(formData: FormData) {
   }
 }
 
+
 export async function updateEpisode(input: VariablesOf<typeof UpdateEpisodeMutation>) {
   const result = await getClient().mutate({
     mutation: UpdateEpisodeMutation,
@@ -32,7 +33,6 @@ export async function updateEpisode(input: VariablesOf<typeof UpdateEpisodeMutat
   revalidatePath("/episode/" + input.id)
   return result
 }
-
 
 const UpdateEpisodeMutation = graphql(`
 mutation updateEpisode($id: String!, $input: UpdateEpisodeInput!) {

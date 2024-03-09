@@ -29,11 +29,12 @@ aiolimiter = "^1.1.0"
 tenacity = "^8.2.3"
 pyright = "^1.1.351"
 strawberry-graphql = {extras = ["debug-server"], version = "^0.219.2"}
+aioboto3 = "^12.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.23.3"
 pytest = "^7.4.4"
-ruff = "^0.1.13"
+ruff = "^0.3.2"
 
 [build-system]
 requires = ["poetry-core"]
