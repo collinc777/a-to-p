@@ -77,12 +77,10 @@ async def generate_episode_task(episode_id):
                 session,
                 db_obj=episode,
                 obj_in=UpdateEpisodeDBInput(
-                    **{
-                        "status": EpisodeStatus.done,
-                        "url": url,
-                        "transcript": transcript,
-                        "episode_hash": episode.computed_episode_hash,
-                    }
+                    status=EpisodeStatus.done,
+                    url=url,
+                    transcript=transcript,
+                    episode_hash=episode.computed_episode_hash,
                 ),
             )
         except RuntimeError:

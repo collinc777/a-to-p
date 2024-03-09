@@ -1,23 +1,17 @@
-import { Key, useCallback, useEffect, useRef, useState } from "react";
-import { CheckCheckIcon, CheckIcon, FilePenLine, Trash } from "lucide-react";
+import { useRef, useState } from "react";
+import { CheckIcon, FilePenLine, Trash } from "lucide-react";
 import { updateEpisode } from "./actions";
-import debounce from "lodash.debounce";
-import { FragmentOf, ResultOf, readFragment } from "gql.tada";
+import { FragmentOf, ResultOf } from "gql.tada";
 import { TranscriptFragment, TranscriptLineFragment } from "./queries";
 import { Button } from "@/components/ui/button";
-import Result from "postcss/lib/result";
 import { Dialog } from "@radix-ui/react-dialog";
 import {
   DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export default function TranscriptViewer({
   transcript: transcript,
