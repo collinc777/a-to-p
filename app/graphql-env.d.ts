@@ -168,6 +168,15 @@ export type introspection = {
               "ofType": null
             },
             "args": []
+          },
+          {
+            "name": "episodeHash",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "args": []
           }
         ],
         "interfaces": []
@@ -254,6 +263,24 @@ export type introspection = {
                 "name": "String",
                 "ofType": null
               }
+            },
+            "args": []
+          },
+          {
+            "name": "lineHash",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "args": []
+          },
+          {
+            "name": "audioUrl",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "args": []
           }
@@ -483,6 +510,15 @@ export type introspection = {
               "ofType": null
             },
             "defaultValue": "null"
+          },
+          {
+            "name": "episodeHash",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": "null"
           }
         ]
       },
@@ -534,6 +570,24 @@ export type introspection = {
                 "ofType": null
               }
             }
+          },
+          {
+            "name": "lineHash",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": "null"
+          },
+          {
+            "name": "audioUrl",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": "null"
           }
         ]
       },

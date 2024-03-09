@@ -1,6 +1,6 @@
 "use client";
 import { AudioPlayer } from "@/app/AudioPlayer";
-import TranscriptViewer from "@/app/TranscriptViewer";
+import TranscriptViewer, { EditTranscriptView } from "@/app/TranscriptViewer";
 import Link from "next/link";
 import DownloadButton from "./DownloadButton";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { EpisodeFragment, ExtractedArticleFragment } from "@/app/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { graphql } from "@/app/graphql";
 import { useMutation } from "@apollo/client";
+import { revalidatePath } from "next/cache";
 
 export const EpisodeDetails = ({
   episode,
@@ -61,12 +62,21 @@ export const EpisodeDetails = ({
       </div>
       <div>
         <h2 className="text-2xl font-semibold">Transcript</h2>
-        {episode.transcript ? (
-          <TranscriptViewer
-            episodeId={episode.id!}
-            transcriptFrag={episode?.transcript}
-            isEditable={isEditable}
-          />
+        {episode.transcript && episode.status ? (
+          <>
+            {isEditable ? (
+              <EditTranscriptView
+                transcript={episode?.transcript}
+                episodeId={episode.id}
+              />
+            ) : (
+              <TranscriptViewer
+                episodeId={episode.id!}
+                transcript={episode?.transcript}
+                episodeStatus={episode.status!}
+              />
+            )}
+          </>
         ) : (
           <TranscriptLoading />
         )}

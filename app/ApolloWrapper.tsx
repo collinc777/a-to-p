@@ -8,6 +8,9 @@ import {
   NextSSRApolloClient,
   SSRMultipartLink,
 } from "@apollo/experimental-nextjs-app-support/ssr";
+import { removeTypenameFromVariables } from "@apollo/client/link/remove-typename";
+
+const removeTypenameLink = removeTypenameFromVariables();
 
 const url = `${process.env.NEXT_PUBLIC_BACKEND_HOST}`;
 // have a function to create a client for you
@@ -29,6 +32,7 @@ function makeClient() {
     link:
       typeof window === "undefined"
         ? ApolloLink.from([
+            removeTypenameLink,
             // in a SSR environment, if you use multipart features like
             // @defer, you need to decide how to handle these.
             // This strips all interfaces with a `@defer` directive from your queries.
