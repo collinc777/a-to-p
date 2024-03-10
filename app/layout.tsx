@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { ApolloWrapper } from "./ApolloWrapper";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 const PostHogPageView = dynamic(() => import("./PostHogPageView"), {
@@ -42,6 +43,7 @@ export default function RootLayout({
               </header>
               {children}
             </div>
+            <Toaster />
           </body>
         </ApolloWrapper>
       </PHProvider>

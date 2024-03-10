@@ -1,10 +1,8 @@
 "use client";
-import { AudioPlayer } from "@/app/AudioPlayer";
-import TranscriptViewer, { EditTranscriptView } from "@/app/TranscriptViewer";
+import TranscriptViewer from "@/app/TranscriptViewer";
+import { EditTranscriptView } from "@/app/EditTranscriptView";
 import Link from "next/link";
-import DownloadButton from "./DownloadButton";
-import { Button } from "@/components/ui/button";
-import { FragmentOf, ResultOf, readFragment } from "@/app/graphql";
+import { ResultOf, readFragment } from "@/app/graphql";
 import { EpisodeFragment, ExtractedArticleFragment } from "@/app/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { graphql } from "@/app/graphql";
@@ -70,7 +68,7 @@ export const TranscriptLoading = () => {
   return <Skeleton className="w-full h-10" />;
 };
 
-const GenerateAudioMutation = graphql(
+export const GenerateAudioMutation = graphql(
   `
     mutation generateAudio($id: String!) {
       generateEpisodeAudio(episodeId: $id) {
@@ -80,25 +78,3 @@ const GenerateAudioMutation = graphql(
   `,
   [EpisodeFragment]
 );
-export function EditEpisodeActionBar({
-  episode,
-}: {
-  episode: FragmentOf<typeof EpisodeFragment>;
-}) {
-  const [generateAudio] = useMutation(GenerateAudioMutation);
-  return (
-    <div className="flex flex-row items-center space-x-2">
-      <AudioPlayer url={episode.url} />
-      <DownloadButton url={episode.url} />
-      <Button
-        onClick={async () => {
-          const result = await generateAudio({
-            variables: { id: episode.id! },
-          });
-        }}
-      >
-        Regenerate Audio
-      </Button>
-    </div>
-  );
-}
