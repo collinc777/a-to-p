@@ -41,25 +41,6 @@ export const EpisodeDetails = ({
           </h1>
         )}
       </div>
-      <div className="flex flex-row items-center space-x-3 flex-wrap space-y-3">
-        {episode.url && episode.status === "done" ? (
-          <>
-            <AudioPlayer url={episode.url} />
-            <DownloadButton url={episode.url} />
-            <Button
-              onClick={async () => {
-                const result = await generateAudio({
-                  variables: { id: episode.id! },
-                });
-              }}
-            >
-              Regenerate Audio
-            </Button>
-          </>
-        ) : (
-          <Skeleton className="w-40 h-10" />
-        )}
-      </div>
       <div>
         <h2 className="text-2xl font-semibold">Transcript</h2>
         {episode.transcript && episode.status ? (
@@ -67,7 +48,7 @@ export const EpisodeDetails = ({
             {isEditable ? (
               <EditTranscriptView
                 transcript={episode?.transcript}
-                episodeId={episode.id}
+                episode={episode}
               />
             ) : (
               <TranscriptViewer
@@ -99,3 +80,25 @@ const GenerateAudioMutation = graphql(
   `,
   [EpisodeFragment]
 );
+export function EditEpisodeActionBar({
+  episode,
+}: {
+  episode: FragmentOf<typeof EpisodeFragment>;
+}) {
+  const [generateAudio] = useMutation(GenerateAudioMutation);
+  return (
+    <div className="flex flex-row items-center space-x-2">
+      <AudioPlayer url={episode.url} />
+      <DownloadButton url={episode.url} />
+      <Button
+        onClick={async () => {
+          const result = await generateAudio({
+            variables: { id: episode.id! },
+          });
+        }}
+      >
+        Regenerate Audio
+      </Button>
+    </div>
+  );
+}

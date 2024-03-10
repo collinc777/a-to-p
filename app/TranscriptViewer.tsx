@@ -2,7 +2,11 @@ import { useRef, useState } from "react";
 import { CheckIcon, FilePenLine, Trash } from "lucide-react";
 import { updateEpisode } from "./actions";
 import { FragmentOf, ResultOf } from "gql.tada";
-import { TranscriptFragment, TranscriptLineFragment } from "./queries";
+import {
+  EpisodeFragment,
+  TranscriptFragment,
+  TranscriptLineFragment,
+} from "./queries";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@radix-ui/react-dialog";
 import {
@@ -12,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { EditEpisodeActionBar } from "./episode/[id]/EpisodeDetails";
 
 export default function TranscriptViewer({
   transcript: transcript,
@@ -57,12 +62,13 @@ function TranscriptLine({
 }
 
 export function EditTranscriptView({
-  episodeId,
+  episode,
   transcript,
 }: {
-  episodeId: string;
+  episode: ResultOf<typeof EpisodeFragment>;
   transcript: ResultOf<typeof TranscriptFragment>;
 }) {
+  const episodeId = episode.id;
   const [trascriptCopy, setTranscriptCopy] = useState(transcript);
   const addLineBefore = async (idx: number) => {
     const newTranscriptLines = trascriptCopy.transcriptLines.slice();
@@ -141,6 +147,7 @@ export function EditTranscriptView({
   };
   return (
     <div className="space-y-3">
+      <EditEpisodeActionBar episode={episode} />
       {trascriptCopy.transcriptLines.map((line, idx) => {
         return (
           <EditableTranscriptLine
