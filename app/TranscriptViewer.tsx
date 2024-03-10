@@ -6,6 +6,7 @@ import { graphql } from "./graphql";
 
 export default function TranscriptViewer({
   transcript: transcript,
+  episodeStatus,
 }: {
   episodeId: string;
   transcript: FragmentOf<typeof TranscriptFragment>;
@@ -18,7 +19,7 @@ export default function TranscriptViewer({
       {transcriptLines?.map((line, idx) => {
         return <TranscriptLine key={idx} idx={idx} line={line} />;
       })}
-      <TranscriptLoading />
+      {episodeStatus == "generating_transcript" && <TranscriptLoading />}
     </div>
   );
 }

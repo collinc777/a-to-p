@@ -3,6 +3,10 @@ const nextConfig = {
   rewrites: async () => {
     return [
       {
+        source: "/episode_audio/:path*",
+        destination: "https://https://pub-8de223ddcc7d42b1b0db7486fcb8c437.r2.dev/episode/:path*"
+      },
+      {
         source: "/graphql",
         destination:
           process.env.NODE_ENV === "development"

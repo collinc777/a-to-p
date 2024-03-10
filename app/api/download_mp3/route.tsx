@@ -32,7 +32,7 @@ export const GET = async (request: NextRequest) => {
     response.headers.set("Content-Type", file.ContentType as string);
     response.headers.set(
       "Content-Disposition",
-      `attachment; filename=${fileName}`
+      `aetachment; filename=${fileName}`
     );
     return response;
   } catch (error) {
