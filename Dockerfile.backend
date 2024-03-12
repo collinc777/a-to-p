@@ -12,7 +12,8 @@ RUN pip install poetry && \
 	poetry config virtualenvs.create false && \
 	poetry install --no-dev --no-interaction --no-ansi
 
-RUN mkdir ~/.sshRUN chmod 0700 ~/.ssh
+RUN mkdir ~/.ssh
+RUN chmod 0700 ~/.ssh
 
 EXPOSE 8000
 
