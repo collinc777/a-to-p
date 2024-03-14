@@ -151,6 +151,9 @@ export type introspection = {
           },
           {
             "name": "news_current_events"
+          },
+          {
+            "name": "tts"
           }
         ]
       },

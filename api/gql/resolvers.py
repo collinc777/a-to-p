@@ -66,6 +66,11 @@ episode_format_choices = [
         is_ready=True,
     ),
     EpisodeFormatChoice(
+        display_name="Text To Speech (Solo)",
+        value=EpisodeFormat.tts,
+        is_ready=False,
+    ),
+    EpisodeFormatChoice(
         display_name="Monologue (Solo)", value=EpisodeFormat.monologue, is_ready=False
     ),
     EpisodeFormatChoice(

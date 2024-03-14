@@ -35,6 +35,7 @@ class EpisodeFormat(str, Enum):
     educational = "educational"
     storytelling = "storytelling"
     news_current_events = "news_current_events"
+    tts = "tts"
 
 
 @strawberry.enum
