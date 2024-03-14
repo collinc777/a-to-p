@@ -15,7 +15,6 @@ from api.longform_episode_generator import (
     generate_episode_task,
 )
 from api.models import (
-    CreateEpisodeRequest,
     Episode,
     EpisodeStatus,
     ExtractedArticle,

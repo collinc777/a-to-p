@@ -19,5 +19,6 @@
 	"python.testing.pytestEnabled": true,
 	"files.autoSave": "off",
 	"typescript.tsdk": "node_modules/typescript/lib",
-	"typescript.enablePromptUseWorkspaceTsdk": true
+	"typescript.enablePromptUseWorkspaceTsdk": true,
+	"python.analysis.typeCheckingMode": "standard"
 }

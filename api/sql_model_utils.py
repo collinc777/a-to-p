@@ -21,12 +21,12 @@ def pydantic_column_type(pydantic_type):
             self.json_encoder = json_encoder
             super(PydanticJSONType, self).__init__()
 
-        def bind_processor(self, dialect):
+        def bind_processor(self, dialect):  # type: ignore
             impl_processor = self.impl.bind_processor(dialect)  # type: ignore
             dumps = self.json_encoder.dumps
             if impl_processor:
 
-                def process(value: T):
+                def process(value: T):  # type: ignore
                     if value is not None:
                         if isinstance(pydantic_type, ModelMetaclass):
                             # This allows to assign non-InDB models and if they're
@@ -55,7 +55,7 @@ def pydantic_column_type(pydantic_type):
 
             return process
 
-        def result_processor(self, dialect, coltype) -> T:
+        def result_processor(self, dialect, coltype) -> T:  # type: ignore
             impl_processor = self.impl.result_processor(dialect, coltype)  # type: ignore
             if impl_processor:
 

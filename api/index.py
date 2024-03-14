@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 from dotenv import load_dotenv
-from api.models import Episode
+from api.models import Episode, EpisodeStatus
 import sentry_sdk
 from api.settings import Settings, get_settings
 from api.gql.resolvers import graphql_app
@@ -62,7 +62,7 @@ async def episode_get(
         return Episode(
             title="Not found",
             id=uuid.UUID(id),
-            status="not found",
+            status=EpisodeStatus.not_found,
             url="",
             article_text="",
         )

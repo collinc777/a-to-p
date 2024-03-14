@@ -79,7 +79,6 @@ async def generate_episode_task(episode_id):
                 obj_in=UpdateEpisodeDBInput(
                     status=EpisodeStatus.done,
                     url=url,
-                    transcript=transcript,
                     episode_hash=episode.computed_episode_hash,
                 ),
             )

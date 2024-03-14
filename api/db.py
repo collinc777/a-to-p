@@ -10,9 +10,11 @@ async_engine = AsyncEngine(create_engine(get_settings().database_url))  # type: 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async_session = sessionmaker(
-        bind=async_engine, class_=AsyncSession, expire_on_commit=False
-    )
-    async with async_session() as session:
+        bind=async_engine,  # type: ignore
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )  # type: ignore
+    async with async_session() as session:  # type: ignore
         yield session
 
 

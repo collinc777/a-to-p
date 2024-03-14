@@ -11,13 +11,13 @@ async def generate_audio_for_line(
     line: TranscriptLine,
     provider: TTSProvider,
 ) -> Tuple[TranscriptLine, bytes]:
-    if line.audio_url_id == line.computed_line_hash:
+    if line.audio_url_id == line.computed_line_hash and line.audio_url:
         audio_bytes = await get_file_obj(line.audio_url)
         return line, audio_bytes
     # use tts to generate audio
     audio = await provider.speak(
         text=line.text,
-        speaker=line.speaker.lower(),
+        speaker=line.speaker.lower(),  # type: ignore
     )
     # save to a file
     audio_url = await upload_fileobj(
@@ -34,6 +34,8 @@ async def generate_audio(
     provider: TTSProvider,
 ) -> str:
     # use tts to generate audio
+    if not episode.transcript:
+        raise ValueError("Transcript not found")
     lines = episode.transcript.transcript_lines
     tasks = [generate_audio_for_line(line=line, provider=provider) for line in lines]
     import asyncio
@@ -50,7 +52,7 @@ async def generate_audio(
     # combine the audio segments
     combined = sum(audio_segments, AudioSegment.empty())
     # save to a file
-    result = combined.export(format="mp3")
+    result: BytesIO = combined.export(format="mp3")  # type: ignore
     episode.episode_hash = episode.computed_episode_hash
     return await upload_fileobj(
         result, "a-to-p", f"episode/{ episode.episode_hash }.mp3"
@@ -62,8 +64,7 @@ async def generate_episode_audio(episode: Episode):
     if episode.transcript is None:
         raise ValueError("Transcript not found")
     provider = get_tts_provider("openai")
-    url = await generate_audio(episode=episode, provider=provider)
-    return url
+    return await generate_audio(episode=episode, provider=provider)
 
 
 async def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> str:
@@ -74,8 +75,8 @@ async def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> str:
         endpoint_url=settings.bucket_url,
         aws_access_key_id=settings.bucket_access_key_id,
         aws_secret_access_key=settings.bucket_secret_access_key,
-    ) as client:
-        response = await client.upload_fileobj(
+    ) as client:  # type: ignore
+        await client.upload_fileobj(
             fileobj,
             bucket,
             key,
@@ -92,7 +93,7 @@ async def get_file_obj(url: str) -> bytes:
     settings = get_settings()
     session = aioboto3.Session()
     async with session.client(
-        "s3",
+        "s3",  # type: ignore
         endpoint_url=settings.bucket_url,
         aws_access_key_id=settings.bucket_access_key_id,
         aws_secret_access_key=settings.bucket_secret_access_key,

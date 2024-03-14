@@ -34,6 +34,7 @@ class EpisodeStatus(str, Enum):
     generating_transcript = "generating_transcript"
     processing = "processing"
     started = "started"
+    not_found = "not_found"
 
 
 class ExtractedArticle(SQLModel):
