@@ -16,7 +16,7 @@ const podcastFormats = [
   { displayValue: "Co-hosted (Dialogue)", value: "dialogue" },
   { displayValue: "Interview", value: "interview" },
   { displayValue: "Panel", value: "panel" },
-  { displayValue: "Narrative", value: "narrative" },
+  { displayValue: "Educational", value: "Educational" },
   { displayValue: "Other", value: "other" },
 ];
 

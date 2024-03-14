@@ -36,6 +36,24 @@ export type introspection = {
             "args": []
           },
           {
+            "name": "episodeFormatChoices",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "EpisodeFormatChoice",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "args": []
+          },
+          {
             "name": "episode",
             "type": {
               "kind": "NON_NULL",
@@ -65,6 +83,80 @@ export type introspection = {
       {
         "kind": "SCALAR",
         "name": "String"
+      },
+      {
+        "kind": "OBJECT",
+        "name": "EpisodeFormatChoice",
+        "fields": [
+          {
+            "name": "displayName",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "value",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "ENUM",
+                "name": "EpisodeFormat",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "isReady",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              }
+            },
+            "args": []
+          }
+        ],
+        "interfaces": []
+      },
+      {
+        "kind": "ENUM",
+        "name": "EpisodeFormat",
+        "enumValues": [
+          {
+            "name": "monologue"
+          },
+          {
+            "name": "dialogue"
+          },
+          {
+            "name": "interview"
+          },
+          {
+            "name": "panel"
+          },
+          {
+            "name": "educational"
+          },
+          {
+            "name": "storytelling"
+          },
+          {
+            "name": "news_current_events"
+          }
+        ]
+      },
+      {
+        "kind": "SCALAR",
+        "name": "Boolean"
       },
       {
         "kind": "OBJECT",
@@ -124,6 +216,15 @@ export type introspection = {
                 "name": "EpisodeStatus",
                 "ofType": null
               }
+            },
+            "args": []
+          },
+          {
+            "name": "episodeFormat",
+            "type": {
+              "kind": "ENUM",
+              "name": "EpisodeFormat",
+              "ofType": null
             },
             "args": []
           },
@@ -210,6 +311,9 @@ export type introspection = {
           },
           {
             "name": "started"
+          },
+          {
+            "name": "not_found"
           }
         ]
       },
@@ -690,10 +794,6 @@ export type introspection = {
             "defaultValue": "null"
           }
         ]
-      },
-      {
-        "kind": "SCALAR",
-        "name": "Boolean"
       }
     ],
     "directives": []

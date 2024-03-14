@@ -27,6 +27,17 @@ class CreateEpisodeRequest(BaseModel):
 
 
 @strawberry.enum
+class EpisodeFormat(str, Enum):
+    monologue = "monologue"
+    dialogue = "dialogue"
+    interview = "interview"
+    panel = "panel"
+    educational = "educational"
+    storytelling = "storytelling"
+    news_current_events = "news_current_events"
+
+
+@strawberry.enum
 class EpisodeStatus(str, Enum):
     done = "done"
     failed = "failed"
@@ -103,6 +114,7 @@ class UpdateEpisodeDBInput(UpdateEpisodeInput):
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
     status: EpisodeStatus
+    episode_format: Optional[EpisodeFormat] = None
     url: str = Field(default=None, nullable=True)
     article_text: str
     transcript: Optional[Transcript] = Field(
