@@ -3,6 +3,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormButton } from "./FormButton";
 import { createEpisode } from "./actions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const podcastFormats = [
+  { displayValue: "Monologue (Solo)", value: "monologue" },
+  { displayValue: "Co-hosted (Dialogue)", value: "dialogue" },
+  { displayValue: "Interview", value: "interview" },
+  { displayValue: "Panel", value: "panel" },
+  { displayValue: "Narrative", value: "narrative" },
+  { displayValue: "Other", value: "other" },
+];
+
 export function CreateEpisode() {
   return (
     <main className="flex-1 py-8 px-4">
@@ -20,6 +37,19 @@ export function CreateEpisode() {
             placeholder="Paste your text or URL here"
             type="text"
           />
+          <Select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Podcast Format..." />
+            </SelectTrigger>
+            <SelectContent>
+              {podcastFormats.map((format) => (
+                <SelectItem key={format.value} value={format.value}>
+                  {format.displayValue}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <FormButton />
         </form>
       </div>
