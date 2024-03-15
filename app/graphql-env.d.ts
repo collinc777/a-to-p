@@ -36,6 +36,24 @@ export type introspection = {
             "args": []
           },
           {
+            "name": "episodeFormats",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "EpisodeFormat",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "args": []
+          },
+          {
             "name": "episode",
             "type": {
               "kind": "NON_NULL",
@@ -65,6 +83,127 @@ export type introspection = {
       {
         "kind": "SCALAR",
         "name": "String"
+      },
+      {
+        "kind": "OBJECT",
+        "name": "EpisodeFormat",
+        "fields": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "UUID",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "createdAt",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "lastEdited",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "displayValue",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "episodeFormatType",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "ENUM",
+                "name": "EpisodeFormatType",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "index",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            "args": []
+          }
+        ],
+        "interfaces": []
+      },
+      {
+        "kind": "SCALAR",
+        "name": "UUID"
+      },
+      {
+        "kind": "SCALAR",
+        "name": "DateTime"
+      },
+      {
+        "kind": "ENUM",
+        "name": "EpisodeFormatType",
+        "enumValues": [
+          {
+            "name": "monologue"
+          },
+          {
+            "name": "dialogue"
+          },
+          {
+            "name": "interview"
+          },
+          {
+            "name": "panel"
+          },
+          {
+            "name": "educational"
+          },
+          {
+            "name": "storytelling"
+          },
+          {
+            "name": "news_current_events"
+          },
+          {
+            "name": "tts"
+          }
+        ]
+      },
+      {
+        "kind": "SCALAR",
+        "name": "Int"
       },
       {
         "kind": "OBJECT",
@@ -189,14 +328,6 @@ export type introspection = {
           }
         ],
         "interfaces": []
-      },
-      {
-        "kind": "SCALAR",
-        "name": "UUID"
-      },
-      {
-        "kind": "SCALAR",
-        "name": "DateTime"
       },
       {
         "kind": "ENUM",

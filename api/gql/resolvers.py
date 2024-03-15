@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Iterable, List, Optional
 import uuid
 import strawberry
 
@@ -6,7 +6,7 @@ from fastapi import Depends
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 from sqlalchemy.ext.asyncio import AsyncSession
-from api.crud import crud_episode
+from api.crud import crud_episode, crud_episode_format
 
 from api.db import get_session
 from api.longform_episode_generator import (
@@ -16,6 +16,7 @@ from api.longform_episode_generator import (
 )
 from api.models import (
     Episode,
+    EpisodeFormat as EpisodeFormatModel,
     EpisodeStatus,
     ExtractedArticle,
     Transcript,
@@ -51,11 +52,20 @@ class EpisodeType:
     pass
 
 
+@strawberry.experimental.pydantic.type(model=EpisodeFormatModel, all_fields=True)
+class EpisodeFormat:
+    pass
+
+
 @strawberry.type
 class Query:
     @strawberry.field
     def hello(self) -> str:
         return "Hello World"
+
+    @strawberry.field
+    async def episode_formats(self, info: Info) -> List[EpisodeFormat]:
+        return await crud_episode_format.get_all(info.context["session"])
 
     @strawberry.field
     async def episode(self, id: str, info: Info) -> EpisodeType:

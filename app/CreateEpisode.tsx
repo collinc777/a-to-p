@@ -15,18 +15,17 @@ import { useSuspenseQuery } from "@apollo/experimental-nextjs-app-support/ssr";
 import { usePostHog } from "posthog-js/react";
 
 const EpisodeFormatChoiceFragment = graphql(`
-  fragment EpisodeFormatChoice on EpisodeFormatChoice {
-    value
-    displayName
-    isReady
+  fragment EpisodeFormatFragment on EpisodeFormat {
+    id
+    displayValue
   }
 `);
 
 const EpisodeFormatChoicesQuery = graphql(
   `
-    query EpisodeFormatChoicesQuery {
-      episodeFormatChoices {
-        ...EpisodeFormatChoice
+    query EpisodeFormat {
+      episodeFormats {
+        ...EpisodeFormatFragment
       }
     }
   `,
@@ -38,7 +37,7 @@ export function CreateEpisode() {
   const ph = usePostHog();
   const episodeFormatChoices = readFragment(
     EpisodeFormatChoiceFragment,
-    data?.episodeFormatChoices
+    data?.episodeFormats
   );
   return (
     <main className="flex-1 py-8 px-4">
@@ -63,7 +62,7 @@ export function CreateEpisode() {
                 podcastFormat: e,
               });
               const selectedFormat = episodeFormatChoices.find(
-                (format) => format.value === e
+                (format) => format.id === e
               );
             }}
           >
@@ -72,12 +71,8 @@ export function CreateEpisode() {
             </SelectTrigger>
             <SelectContent>
               {episodeFormatChoices.map((format) => (
-                <SelectItem
-                  key={format.value}
-                  value={format.value}
-                  disabled={!format.isReady}
-                >
-                  {format.displayName}
+                <SelectItem key={format.id} value={format.id}>
+                  {format.displayValue}
                 </SelectItem>
               ))}
               <SelectItem value="other">Other</SelectItem>

@@ -26,6 +26,7 @@ class CreateEpisodeRequest(BaseModel):
         return self
 
 
+@strawberry.enum
 class EpisodeFormatType(str, Enum):
     monologue = "monologue"
     dialogue = "dialogue"
