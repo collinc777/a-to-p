@@ -4,25 +4,6 @@ import { VariablesOf, graphql } from "./graphql";
 import { EpisodeFragment } from "./queries";
 import { getClient } from "./ApolloClient";
 import { revalidatePath } from "next/cache";
-export async function createEpisode(formData: FormData) {
-  const text = formData.get("inputText") as string;
-  let payload = {};
-  if (text.startsWith("http")) {
-    payload = { articleUrl: text };
-  } else {
-    payload = { articleText: text };
-  }
-  const result = await getClient().mutate({
-    mutation: CreateEpisodeMutation,
-    variables: {
-      input: payload,
-    },
-  });
-  const id = result?.data?.createEpisodeCreationTask?.id;
-  if (id) {
-    redirect(`/episode/${id}`, RedirectType.push)
-  }
-}
 
 
 export async function updateEpisode(input: VariablesOf<typeof UpdateEpisodeMutation>) {
@@ -42,11 +23,4 @@ mutation updateEpisode($id: String!, $input: UpdateEpisodeInput!) {
     }
     }`, [EpisodeFragment]);
 
-  const CreateEpisodeMutation = graphql(`
-  mutation createEpisode($input: CreateEpisodeInput!) {
-    createEpisodeCreationTask(input: $input) {
-      id
-    }
-  }
-`);
 

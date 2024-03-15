@@ -831,6 +831,17 @@ export type introspection = {
               "ofType": null
             },
             "defaultValue": "null"
+          },
+          {
+            "name": "episodeFormatId",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            }
           }
         ]
       },

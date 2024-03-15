@@ -100,6 +100,7 @@ class UpdateEpisodeInput:
 class CreateEpisodeInput:
     article_text: Optional[str] = None
     article_url: Optional[str] = None
+    episode_format_id: uuid.UUID
 
 
 @strawberry.type
@@ -154,6 +155,7 @@ class Mutation:
         episode = Episode(
             id=id,
             status=EpisodeStatus.started,
+            episode_format_id=input.episode_format_id,
             url="",
             article_text=article_text,
             title=article.title if article and article.title else "Untitled",
