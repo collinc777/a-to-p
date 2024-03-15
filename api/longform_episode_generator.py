@@ -222,6 +222,7 @@ def get_section_system_prompt():
 Additionally, ensure the dialogue:
 
 - Showcases a natural, NPR-style conversational tone between Jake and Emily, with a balance of insights, inquiries, and elaborations on the topics.
+- Does NOT overly use each speakers name in the transcript. 
 - Maintains impeccable JSON formatting for ease of parsing and understanding, with each line of dialogue correctly attributed to either Jake or Emily using the specified JSON structure.
 
 Remember, the focus is on creating an NPR-style conversation that informs, engages, and invites the listener into the dialogue, while keeping the format structured and clear for digital consumption.
