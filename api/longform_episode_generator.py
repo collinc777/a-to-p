@@ -1,4 +1,5 @@
-from typing import AsyncGenerator, Iterable, List
+from types import NoneType
+from typing import AsyncGenerator, Callable, Iterable, List, Tuple
 import instructor
 import openai
 from pydantic import BaseModel
@@ -113,6 +114,23 @@ def chunks(lst, n):
         yield lst[i : i + n]
 
 
+class SectionUserPromptArgs(BaseModel):
+    article_text: str
+    sections: List[Section]
+    script_so_far: List[TranscriptLine]
+
+
+SectionSystemPrompt = Callable[[], str]
+
+SectionUserPrompt = Callable[[SectionUserPromptArgs], str]
+
+
+def get_section_prompt_factories(
+    episode_format: EpisodeFormat,
+) -> Tuple[SectionUserPrompt, SectionSystemPrompt]:
+    return get_section_user_prompt, get_section_system_prompt
+
+
 async def gen_main_sections(
     *,
     article_text: str,
@@ -120,17 +138,19 @@ async def gen_main_sections(
     episode_format: EpisodeFormat,
     script_so_far: List[TranscriptLine],
 ):
-    section_system_prompt = get_section_system_prompt()
+    user_prompt_factory, section_prompt_factory = get_section_prompt_factories(
+        episode_format
+    )
+    section_system_prompt = section_prompt_factory()
     for section_outline in chunks(outline.sections, 2):
-        section_user_prompt = get_section_user_prompt(
-            article_text=article_text,
-            sections=section_outline,
-            script_so_far=script_so_far,
+        section_user_prompt = user_prompt_factory(
+            SectionUserPromptArgs(
+                article_text=article_text,
+                sections=section_outline,
+                script_so_far=script_so_far,
+            )
         )
         section_script = await gen_script_for_sections(
-            article_text=article_text,
-            sections=section_outline,
-            script_so_far=script_so_far,
             section_system_prompt=section_system_prompt,
             section_user_prompt=section_user_prompt,
         )
@@ -141,11 +161,8 @@ async def gen_main_sections(
 
 async def gen_script_for_sections(
     *,
-    article_text: str,
-    sections: List[Section],
     section_system_prompt: str,
     section_user_prompt: str,
-    script_so_far: List[TranscriptLine],
 ) -> AsyncGenerator[TranscriptLine, None]:
     result = await client.chat.completions.create(
         model="gpt-4-turbo-preview",
@@ -162,9 +179,9 @@ async def gen_script_for_sections(
 
 
 def get_section_user_prompt(
-    *, article_text: str, sections: List[Section], script_so_far: List[TranscriptLine]
+    input: SectionUserPromptArgs,
 ):
-    return f"Generate a transcript for the CURRENT sections of the podcast based on the below article_text, section outline, and script so far. and article text.\n\nArticle Text: {article_text}\n\nSection Outlines to base the script on: {sections}\n\nScript So Far: {script_so_far}. Make it flow with the script so far. Keep in mind there will be content coming after unless it's the conclusion. No sign off until the conclusion! You are NOT writing the conclusion or ending the episode! Keep it Consice!"
+    return f"Generate a transcript for the CURRENT sections of the podcast based on the below article_text, section outline, and script so far. and article text.\n\nArticle Text: {input.article_text}\n\nSection Outlines to base the script on: {input.sections}\n\nScript So Far: {input.script_so_far}. Make it flow with the script so far. Keep in mind there will be content coming after unless it's the conclusion. No sign off until the conclusion! You are NOT writing the conclusion or ending the episode! Keep it Consice!"
 
 
 async def gen_outline(text: str) -> ArticleOutline:
