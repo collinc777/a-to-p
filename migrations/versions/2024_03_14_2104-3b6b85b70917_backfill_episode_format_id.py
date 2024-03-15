@@ -29,7 +29,7 @@ def upgrade() -> None:
     # backfill episode_format_id using sqlmodel
     session.execute(
         sqlmodel.update(Episode)
-        .where(Episode.episode_format_id == None)
+        .where(Episode.episode_format_id == None)  # type: ignore
         .values(episode_format_id="eda325bb-55d8-4553-b225-d6745c9252d3")
     )
 
