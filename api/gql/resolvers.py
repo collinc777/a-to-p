@@ -16,7 +16,6 @@ from api.longform_episode_generator import (
 )
 from api.models import (
     Episode,
-    EpisodeFormat,
     EpisodeStatus,
     ExtractedArticle,
     Transcript,
@@ -53,57 +52,10 @@ class EpisodeType:
 
 
 @strawberry.type
-class EpisodeFormatChoice:
-    display_name: str
-    value: EpisodeFormat
-    is_ready: bool
-
-
-episode_format_choices = [
-    EpisodeFormatChoice(
-        display_name="Co-hosted (Dialogue)",
-        value=EpisodeFormat.dialogue,
-        is_ready=True,
-    ),
-    EpisodeFormatChoice(
-        display_name="Text To Speech (Solo)",
-        value=EpisodeFormat.tts,
-        is_ready=False,
-    ),
-    EpisodeFormatChoice(
-        display_name="Monologue (Solo)", value=EpisodeFormat.monologue, is_ready=False
-    ),
-    EpisodeFormatChoice(
-        display_name="Interview", value=EpisodeFormat.interview, is_ready=False
-    ),
-    EpisodeFormatChoice(
-        display_name="Panel", value=EpisodeFormat.panel, is_ready=False
-    ),
-    EpisodeFormatChoice(
-        display_name="Narrative Storytelling",
-        value=EpisodeFormat.storytelling,
-        is_ready=False,
-    ),
-    EpisodeFormatChoice(
-        display_name="Educational", value=EpisodeFormat.educational, is_ready=False
-    ),
-    EpisodeFormatChoice(
-        display_name="News and Current Events",
-        value=EpisodeFormat.news_current_events,
-        is_ready=False,
-    ),
-]
-
-
-@strawberry.type
 class Query:
     @strawberry.field
     def hello(self) -> str:
         return "Hello World"
-
-    @strawberry.field
-    def episode_format_choices(self) -> list[EpisodeFormatChoice]:
-        return episode_format_choices
 
     @strawberry.field
     async def episode(self, id: str, info: Info) -> EpisodeType:

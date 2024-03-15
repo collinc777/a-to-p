@@ -65,8 +65,6 @@ export function CreateEpisode() {
               const selectedFormat = episodeFormatChoices.find(
                 (format) => format.value === e
               );
-              if (!selectedFormat?.isReady) {
-              }
             }}
           >
             <SelectTrigger className="w-full">
@@ -87,41 +85,7 @@ export function CreateEpisode() {
           </Select>
           <FormButton />
         </form>
-        <EpisodeFormatVoter
-          formatsToVoteOn={episodeFormatChoices.filter((val) => !val.isReady)}
-        />
       </div>
     </main>
-  );
-}
-
-export function EpisodeFormatVoter({
-  formatsToVoteOn,
-}: {
-  formatsToVoteOn: ResultOf<typeof EpisodeFormatChoiceFragment>[];
-}) {
-  return (
-    <div className="flex flex-col items-center space-y-4">
-      <h2 className="text-2xl font-bold">Vote for the next format</h2>
-      <p className="text-gray-600">
-        We are constantly adding new formats to the platform. If you don&apos;t
-        see the format you want, vote for it here.
-      </p>
-      <ul className="flex flex-col space-y-4">
-        {formatsToVoteOn.map((format) => (
-          <li key={format.value} className="flex items-center space-x-4">
-            <span>{format.displayName}</span>
-            <button
-              className="text-blue-500"
-              onClick={() => {
-                // vote for the format
-              }}
-            >
-              Vote
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

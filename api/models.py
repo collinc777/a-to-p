@@ -4,7 +4,7 @@ from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
 from pydantic import BaseModel, ConfigDict, computed_field, model_validator
-from sqlmodel import Field, SQLModel, Column
+from sqlmodel import Field, Relationship, SQLModel, Column
 import strawberry
 
 from api.sql_model_utils import pydantic_column_type
@@ -26,8 +26,7 @@ class CreateEpisodeRequest(BaseModel):
         return self
 
 
-@strawberry.enum
-class EpisodeFormat(str, Enum):
+class EpisodeFormatType(str, Enum):
     monologue = "monologue"
     dialogue = "dialogue"
     interview = "interview"
@@ -112,10 +111,20 @@ class UpdateEpisodeDBInput(UpdateEpisodeInput):
     status: Optional[EpisodeStatus] = None
 
 
+class EpisodeFormat(SQLModelBaseModel, table=True):
+    display_value: str = Field(unique=True)
+    episode_format_type: EpisodeFormatType = Field(unique=True)
+    episodes: List["Episode"] = Relationship(back_populates="episode_format")
+    index: int
+
+
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
     status: EpisodeStatus
-    episode_format: Optional[EpisodeFormat] = None
+    episode_format_id: Optional[uuid.UUID] = Field(
+        default=None, nullable=True, foreign_key="episodeformat.id"
+    )
+    episode_format: Optional[EpisodeFormat] = Relationship(back_populates="episodes")
     url: str = Field(default=None, nullable=True)
     article_text: str
     transcript: Optional[Transcript] = Field(
