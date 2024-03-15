@@ -65,7 +65,7 @@ class Query:
 
     @strawberry.field
     async def episode_formats(self, info: Info) -> List[EpisodeFormat]:
-        return await crud_episode_format.get_all(info.context["session"])
+        return await crud_episode_format.get_all(info.context["session"])  # type: ignore
 
     @strawberry.field
     async def episode(self, id: str, info: Info) -> EpisodeType:

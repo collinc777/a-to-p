@@ -269,9 +269,12 @@ export type introspection = {
           {
             "name": "episodeFormatId",
             "type": {
-              "kind": "SCALAR",
-              "name": "UUID",
-              "ofType": null
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "UUID",
+                "ofType": null
+              }
             },
             "args": []
           },

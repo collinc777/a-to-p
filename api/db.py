@@ -1,32 +1,35 @@
 from typing import AsyncGenerator, AsyncIterator
 from alembic import op
 from fastapi.concurrency import asynccontextmanager
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-from sqlmodel import create_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    create_async_engine,
+    async_sessionmaker,
+)
 from api.settings import get_settings
 
-async_engine = AsyncEngine(create_engine(get_settings().database_url))  # type: ignore
+database_url = get_settings().database_url
+if not database_url:
+    raise ValueError("DATABASE_URL environment variable is not set")
+async_engine = create_async_engine(database_url)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    async_session = sessionmaker(
-        bind=async_engine,  # type: ignore
-        class_=AsyncSession,
+    async_session = async_sessionmaker(
+        bind=async_engine,
         expire_on_commit=False,
     )  # type: ignore
-    async with async_session() as session:  # type: ignore
+    async with async_session() as session:
         yield session
 
 
 @asynccontextmanager
 async def get_session_context() -> AsyncIterator[AsyncSession]:
-    async_session = sessionmaker(
-        bind=async_engine,  # type: ignore
-        class_=AsyncSession,
+    async_session = async_sessionmaker(
+        bind=async_engine,
         expire_on_commit=False,
     )
-    session: AsyncSession = async_session()  # type: ignore
+    session: AsyncSession = async_session()
     try:
         yield session
     finally:
@@ -34,6 +37,8 @@ async def get_session_context() -> AsyncIterator[AsyncSession]:
 
 
 def get_session_for_migrations():
+    from sqlalchemy.orm import sessionmaker
+
     bind = op.get_bind()
     Session = sessionmaker(bind=bind)
     session = Session()

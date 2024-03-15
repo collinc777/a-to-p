@@ -4,7 +4,7 @@ from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
 from pydantic import BaseModel, ConfigDict, computed_field, model_validator
-from sqlmodel import Field, Relationship, SQLModel, Column
+from sqlmodel import Field, SQLModel, Column
 import strawberry
 
 from api.sql_model_utils import pydantic_column_type
@@ -99,6 +99,14 @@ class SQLModelBaseModel(SQLModel):
     last_edited: datetime = Field(default_factory=datetime.utcnow, nullable=True)
 
 
+def Relationship(*, back_populates: str):
+    from sqlmodel import Relationship as SQLModelRelationship
+
+    return SQLModelRelationship(
+        back_populates=back_populates, sa_relationship_kwargs={"lazy": "selectin"}
+    )
+
+
 class UpdateEpisodeInput(SQLModel):
     title: Optional[str] = None
     url: Optional[str] = None
@@ -122,8 +130,8 @@ class EpisodeFormat(SQLModelBaseModel, table=True):
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
     status: EpisodeStatus
-    episode_format_id: Optional[uuid.UUID] = Field(foreign_key="episodeformat.id")
-    episode_format: Optional[EpisodeFormat] = Relationship(back_populates="episodes")
+    episode_format_id: uuid.UUID = Field(foreign_key="episodeformat.id")
+    episode_format: EpisodeFormat = Relationship(back_populates="episodes")
     url: str = Field(default=None, nullable=True)
     article_text: str
     transcript: Optional[Transcript] = Field(

@@ -6,6 +6,7 @@ from api.audio_generator import generate_episode_audio
 from api.db import get_session_context
 
 from api.models import (
+    EpisodeFormat,
     EpisodeStatus,
     ExtractedArticle,
     Transcript,
@@ -57,7 +58,9 @@ async def generate_episode_task(episode_id):
         )
 
         try:
-            resulting_longform = generate_episode_longform(episode.article_text)
+            resulting_longform = generate_episode_longform(
+                episode.article_text, episode.episode_format
+            )
             messages = []
             async for message in resulting_longform:
                 messages.append(message)
@@ -91,18 +94,14 @@ async def generate_episode_task(episode_id):
             raise
 
 
-async def generate_episode_shortform(text: str):
-    outline = await gen_outline(text)
-    script_so_far = []
-    async for line in await gen_shortform_body(text, outline, script_so_far):
-        yield line
-
-
-async def generate_episode_longform(text: str):
+async def generate_episode_longform(text: str, episode_format: EpisodeFormat):
     outline = await gen_outline(text)
     script_so_far = []
     async for line in gen_main_sections(
-        article_text=text, outline=outline, script_so_far=script_so_far
+        article_text=text,
+        outline=outline,
+        script_so_far=script_so_far,
+        episode_format=episode_format,
     ):
         yield line
     # script_so_far = intro
@@ -115,13 +114,25 @@ def chunks(lst, n):
 
 
 async def gen_main_sections(
-    *, article_text: str, outline: ArticleOutline, script_so_far: List[TranscriptLine]
+    *,
+    article_text: str,
+    outline: ArticleOutline,
+    episode_format: EpisodeFormat,
+    script_so_far: List[TranscriptLine],
 ):
+    section_system_prompt = get_section_system_prompt()
     for section_outline in chunks(outline.sections, 2):
+        section_user_prompt = get_section_user_prompt(
+            article_text=article_text,
+            sections=section_outline,
+            script_so_far=script_so_far,
+        )
         section_script = await gen_script_for_sections(
             article_text=article_text,
             sections=section_outline,
             script_so_far=script_so_far,
+            section_system_prompt=section_system_prompt,
+            section_user_prompt=section_user_prompt,
         )
         async for line in section_script:
             yield line
@@ -129,7 +140,12 @@ async def gen_main_sections(
 
 
 async def gen_script_for_sections(
-    *, article_text: str, sections: List[Section], script_so_far: List[TranscriptLine]
+    *,
+    article_text: str,
+    sections: List[Section],
+    section_system_prompt: str,
+    section_user_prompt: str,
+    script_so_far: List[TranscriptLine],
 ) -> AsyncGenerator[TranscriptLine, None]:
     result = await client.chat.completions.create(
         model="gpt-4-turbo-preview",
@@ -138,50 +154,17 @@ async def gen_script_for_sections(
         presence_penalty=0.5,
         response_model=Iterable[TranscriptLine],
         messages=[
-            {"role": "system", "content": get_section_system_prompt()},
-            {
-                "role": "user",
-                "content": f"Generate a transcript for the CURRENT sections of the podcast based on the below article_text, section outline, and script so far. and article text.\n\nArticle Text: {article_text}\n\nSection Outlines to base the script on: {sections}\n\nScript So Far: {script_so_far}. Make it flow with the script so far. Keep in mind there will be content coming after unless it's the conclusion. No sign off until the conclusion! You are NOT writing the conclusion or ending the episode! Keep it Consice!",
-            },
+            {"role": "system", "content": section_system_prompt},
+            {"role": "user", "content": section_user_prompt},
         ],
     )  # type: ignore
     return result
 
 
-async def gen_shortform_body(
-    article_text: str, outline: ArticleOutline, script_so_far: List[TranscriptLine]
-) -> AsyncGenerator[TranscriptLine, None]:
-    return await client.chat.completions.create(
-        model="gpt-4-turbo-preview",
-        stream=True,
-        presence_penalty=0.5,
-        response_model=Iterable[TranscriptLine],
-        messages=[
-            {"role": "system", "content": get_section_system_prompt()},
-            {
-                "role": "user",
-                "content": f"Generate a transcript for the body of the podcast based on the below outline and article text.\n\nOutline: {outline}\n\nArticle Text: {article_text}. Make it flow with the script so far. Script so far: {script_so_far}.",
-            },
-        ],
-    )  # type: ignore
-
-
-async def gen_intro(
-    article_text: str, outline: ArticleOutline
-) -> AsyncGenerator[TranscriptLine, None]:
-    result = await client.chat.completions.create(
-        model="gpt-4-turbo-preview",
-        stream=True,
-        response_model=Iterable[TranscriptLine],
-        messages=[
-            {"role": "system", "content": get_intro_system_prompt()},
-            {
-                "role": "user",
-                "content": f"Generate a transcript for the intro of the podcast based on the below outline and article text.\n\nOutline: {outline}\n\nArticle Text: {article_text}. Keep in mind there will be content coming after. No sign off until the conclusion! You are NOT writing the conclusion or ending the episode!",
-            },
-        ],
-    )  # type: ignore
-    return result
+def get_section_user_prompt(
+    *, article_text: str, sections: List[Section], script_so_far: List[TranscriptLine]
+):
+    return f"Generate a transcript for the CURRENT sections of the podcast based on the below article_text, section outline, and script so far. and article text.\n\nArticle Text: {article_text}\n\nSection Outlines to base the script on: {sections}\n\nScript So Far: {script_so_far}. Make it flow with the script so far. Keep in mind there will be content coming after unless it's the conclusion. No sign off until the conclusion! You are NOT writing the conclusion or ending the episode! Keep it Consice!"
 
 
 async def gen_outline(text: str) -> ArticleOutline:
@@ -192,8 +175,7 @@ async def gen_outline(text: str) -> ArticleOutline:
             {"role": "system", "content": get_outline_system_prompt()},
             {
                 "role": "user",
-                "content": "Create a detailed outline for the following article: "
-                + text,
+                "content": f"Create a detailed outline for the following article. We will be using this outline for creating a podcast transcript from the article so make sure you put in all the relevant content: \n\n{text}",
             },
         ],
     )  # type: ignore
