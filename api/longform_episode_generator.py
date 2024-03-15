@@ -8,6 +8,7 @@ from api.db import get_session_context
 
 from api.models import (
     EpisodeFormat,
+    EpisodeFormatType,
     EpisodeStatus,
     ExtractedArticle,
     Transcript,
@@ -128,7 +129,11 @@ SectionUserPrompt = Callable[[SectionUserPromptArgs], str]
 def get_section_prompt_factories(
     episode_format: EpisodeFormat,
 ) -> Tuple[SectionUserPrompt, SectionSystemPrompt]:
-    return get_section_user_prompt, get_section_system_prompt
+    match episode_format.episode_format_type:
+        case EpisodeFormatType.monologue:
+            return get_section_user_prompt, get_section_system_prompt
+        case _:
+            return get_section_user_prompt, get_section_system_prompt
 
 
 async def gen_main_sections(
