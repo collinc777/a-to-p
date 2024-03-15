@@ -122,9 +122,7 @@ class EpisodeFormat(SQLModelBaseModel, table=True):
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
     status: EpisodeStatus
-    episode_format_id: Optional[uuid.UUID] = Field(
-        default=None, nullable=True, foreign_key="episodeformat.id"
-    )
+    episode_format_id: Optional[uuid.UUID] = Field(foreign_key="episodeformat.id")
     episode_format: Optional[EpisodeFormat] = Relationship(back_populates="episodes")
     url: str = Field(default=None, nullable=True)
     article_text: str

@@ -1,4 +1,5 @@
 from typing import AsyncGenerator, AsyncIterator
+from alembic import op
 from fastapi.concurrency import asynccontextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -30,3 +31,10 @@ async def get_session_context() -> AsyncIterator[AsyncSession]:
         yield session
     finally:
         await session.close()
+
+
+def get_session_for_migrations():
+    bind = op.get_bind()
+    Session = sessionmaker(bind=bind)
+    session = Session()
+    return session

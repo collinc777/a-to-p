@@ -838,7 +838,7 @@ export type introspection = {
               "kind": "NON_NULL",
               "ofType": {
                 "kind": "SCALAR",
-                "name": "String",
+                "name": "UUID",
                 "ofType": null
               }
             }

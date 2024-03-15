@@ -13,8 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 import sqlmodel
 
-from api.crud import crud_episode_format
-from api.db import get_session_context
+from api.db import get_session_for_migrations
 from api.models import EpisodeFormat, EpisodeFormatType
 
 
@@ -65,9 +64,7 @@ def upgrade() -> None:
 
 
 def backfill():
-    bind = op.get_bind()
-    Session = sessionmaker(bind=bind)
-    session = Session()
+    session = get_session_for_migrations()
 
     obj_in = [
         EpisodeFormat(
