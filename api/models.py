@@ -10,7 +10,7 @@ import strawberry
 from api.sql_model_utils import pydantic_column_type
 
 
-Speaker = Literal["narrator", "jake", "emily"]
+Speaker = Literal["narrator", "jake", "emily", "dillon"]
 
 
 class CreateEpisodeRequest(BaseModel):
@@ -24,6 +24,18 @@ class CreateEpisodeRequest(BaseModel):
         if not article_text and not article_url:
             raise ValueError("Either article_text or article_url must be provided")
         return self
+
+
+@strawberry.enum
+class EpisodeFormatType(str, Enum):
+    monologue = "monologue"
+    dialogue = "dialogue"
+    interview = "interview"
+    panel = "panel"
+    educational = "educational"
+    storytelling = "storytelling"
+    news_current_events = "news_current_events"
+    tts = "tts"
 
 
 @strawberry.enum
@@ -87,6 +99,14 @@ class SQLModelBaseModel(SQLModel):
     last_edited: datetime = Field(default_factory=datetime.utcnow, nullable=True)
 
 
+def Relationship(*, back_populates: str):
+    from sqlmodel import Relationship as SQLModelRelationship
+
+    return SQLModelRelationship(
+        back_populates=back_populates, sa_relationship_kwargs={"lazy": "selectin"}
+    )
+
+
 class UpdateEpisodeInput(SQLModel):
     title: Optional[str] = None
     url: Optional[str] = None
@@ -100,9 +120,18 @@ class UpdateEpisodeDBInput(UpdateEpisodeInput):
     status: Optional[EpisodeStatus] = None
 
 
+class EpisodeFormat(SQLModelBaseModel, table=True):
+    display_value: str = Field(unique=True)
+    episode_format_type: EpisodeFormatType = Field(unique=True)
+    episodes: List["Episode"] = Relationship(back_populates="episode_format")
+    index: int
+
+
 class Episode(SQLModelBaseModel, table=True):
     title: Optional[str]
     status: EpisodeStatus
+    episode_format_id: uuid.UUID = Field(foreign_key="episodeformat.id")
+    episode_format: EpisodeFormat = Relationship(back_populates="episodes")
     url: str = Field(default=None, nullable=True)
     article_text: str
     transcript: Optional[Transcript] = Field(
@@ -130,3 +159,9 @@ class Episode(SQLModelBaseModel, table=True):
         if not self.url:
             return None
         return self.url.split("/")[-1]
+
+
+class Section(BaseModel):
+    title: str
+    content: str
+    subsections: List["Section"]
