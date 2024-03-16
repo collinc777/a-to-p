@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     replicate_api_token: Optional[str] = None
     database_url: Optional[str] = None
     sentry_dsn: Optional[str] = None
+    playht_user_id: Optional[str] = None
+    playht_secret_key: Optional[str] = None
     stage: Optional[str] = None
 
 

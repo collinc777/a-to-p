@@ -51,6 +51,8 @@ async def generate_audio(
     ]
     # combine the audio segments
     combined = sum(audio_segments, AudioSegment.empty())
+    if not isinstance(combined, AudioSegment):
+        raise ValueError("Invalid audio segment")
     # save to a file
     result: BytesIO = combined.export(format="mp3")  # type: ignore
     episode.episode_hash = episode.computed_episode_hash
@@ -99,4 +101,4 @@ async def get_file_obj(url: str) -> bytes:
         aws_secret_access_key=settings.bucket_secret_access_key,
     ) as client:
         response = await client.get_object(Bucket="a-to-p", Key=url)
-        return response["Body"].read()
+        return await response["Body"].read()

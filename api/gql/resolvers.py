@@ -52,7 +52,9 @@ class EpisodeType:
     pass
 
 
-@strawberry.experimental.pydantic.type(model=EpisodeFormatModel, all_fields=True)
+@strawberry.experimental.pydantic.type(
+    model=EpisodeFormatModel, fields=["id", "display_value", "index"]
+)
 class EpisodeFormat:
     pass
 
