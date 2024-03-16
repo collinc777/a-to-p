@@ -129,7 +129,6 @@ export function CreateEpisode() {
                             {format.displayValue}
                           </SelectItem>
                         ))}
-                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
