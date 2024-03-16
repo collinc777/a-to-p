@@ -67,7 +67,11 @@ async def generate_episode_task(episode_id):
 
         try:
             resulting_longform = generate_episode_longform(
-                episode.article_text, episode.episode_format
+                text=episode.article_text,
+                episode_format=episode.episode_format,
+                podcast_title=episode.extracted_article.sitename
+                if episode.extracted_article and episode.extracted_article.sitename
+                else "the world's greatest podcast",
             )
             messages = []
             async for message in resulting_longform:
@@ -102,7 +106,9 @@ async def generate_episode_task(episode_id):
             raise
 
 
-async def generate_episode_longform(text: str, episode_format: EpisodeFormat):
+async def generate_episode_longform(
+    *, text: str, episode_format: EpisodeFormat, podcast_title: str
+):
     outline = await gen_outline(text)
     script_so_far = []
     async for line in gen_main_sections(
@@ -110,6 +116,7 @@ async def generate_episode_longform(text: str, episode_format: EpisodeFormat):
         outline=outline,
         script_so_far=script_so_far,
         episode_format=episode_format,
+        podcast_title=podcast_title,
     ):
         yield line
     # script_so_far = intro
@@ -168,6 +175,7 @@ def get_section_prompt_factories(
 async def gen_main_sections(
     *,
     article_text: str,
+    podcast_title: str,
     outline: ArticleOutline,
     episode_format: EpisodeFormat,
     script_so_far: List[TranscriptLine],
@@ -175,7 +183,9 @@ async def gen_main_sections(
     user_prompt_factory, section_system_prompt = get_section_prompt_factories(
         episode_format
     )
-    section_system_prompt = section_system_prompt.get_prompt("Listen Art")
+    section_system_prompt = section_system_prompt.get_prompt(
+        podcast_title=podcast_title
+    )
     for section_outline in chunks(outline.sections, 2):
         section_user_prompt = user_prompt_factory(
             SectionUserPromptArgs(

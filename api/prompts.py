@@ -152,7 +152,7 @@ Your goal is to create an episode that is not only informative but also interact
 class StorytellingSectionSystemPrompt(SectionSystemPrompt):
     def __init__(self, speaker: Speaker):
         super().__init__()
-        self.speakers = speaker
+        self.speaker = speaker
 
     def get_prompt(self, podcast_title: str) -> str:
         return f"""As an expert in crafting narratives for podcasts, you're tasked with developing a script for a storytelling-style podcast named {podcast_title}. Your mission is to weave captivating stories that resonate with listeners, featuring a diverse cast of characters and rich, immersive settings. Each episode should unfold a unique tale, drawing from genres like mystery, adventure, romance, or science fiction. Your script must:
@@ -174,7 +174,7 @@ Furthermore, your script should:
 - Maintain a captivating, storytelling tone throughout, with a good balance of dialogue, action, and description.
 - Be meticulously formatted for digital distribution, ensuring that the script is easy to read and perform, with clear indications of character dialogue, scene changes, and narrative passages.
 
-Focus on creating a series of stories that entertain, inspire, and connect with listeners, making {podcast_title} a must-listen in the world of storytelling podcasts. Ensure the dialogue showcases a natural conversational tone between the characters, with {self.speakers[0]} often leading the narrative or interactions. This element adds a personal touch, drawing listeners deeper into each episode's story."""
+Focus on creating a series of stories that entertain, inspire, and connect with listeners, making {podcast_title} a must-listen in the world of storytelling podcasts. Ensure the dialogue showcases a natural conversational tone between the characters, with {self.speaker} often leading the narrative or interactions. This element adds a personal touch, drawing listeners deeper into each episode's story."""
 
 
 class NewsCurrentEventsSectionSystemPrompt(SectionSystemPrompt):
