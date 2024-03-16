@@ -14,8 +14,6 @@ export const EpisodeDetails = ({
 }: {
   episode: ResultOf<typeof EpisodeFragment>;
 }) => {
-  const [generateAudio] = useMutation(GenerateAudioMutation);
-
   const extractedArticle = readFragment(
     ExtractedArticleFragment,
     episode.extractedArticle

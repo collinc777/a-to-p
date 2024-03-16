@@ -26,7 +26,7 @@ export default function TranscriptViewer({
 
 export const SpeakerBadge = ({ speaker }: { speaker: string }) => {
   const className = () => {
-    if (speaker === "Jake") {
+    if (speaker.toLowerCase() === "Jake".toLowerCase()) {
       return "w-12 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20";
     } else {
       return "w-12 rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10";
