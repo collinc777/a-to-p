@@ -10,7 +10,7 @@ import strawberry
 from api.sql_model_utils import pydantic_column_type
 
 
-Speaker = Literal["narrator", "jake", "emily"]
+Speaker = Literal["narrator", "jake", "emily", "dillon"]
 
 
 class CreateEpisodeRequest(BaseModel):
@@ -159,3 +159,9 @@ class Episode(SQLModelBaseModel, table=True):
         if not self.url:
             return None
         return self.url.split("/")[-1]
+
+
+class Section(BaseModel):
+    title: str
+    content: str
+    subsections: List["Section"]

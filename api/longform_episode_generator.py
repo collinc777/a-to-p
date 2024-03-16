@@ -1,4 +1,3 @@
-from types import NoneType
 from typing import AsyncGenerator, Callable, Iterable, List, Tuple
 import instructor
 import openai
@@ -11,20 +10,26 @@ from api.models import (
     EpisodeFormatType,
     EpisodeStatus,
     ExtractedArticle,
+    Section,
     Transcript,
     TranscriptLine,
     UpdateEpisodeDBInput,
 )
 from api.crud import crud_episode
-from api.prompts import dialogue_section_system_prompt, dialogue_section_user_prompt
+from api.prompts import (
+    DialogueSectionSystemPrompt,
+    EducationalSectionSystemPrompt,
+    InterviewSectionSystemPrompt,
+    MonologueSectionSystemPrompt,
+    NewsCurrentEventsSectionSystemPrompt,
+    PanelDiscussionSystemPrompt,
+    SectionSystemPrompt,
+    SectionUserPromptArgs,
+    StorytellingSectionSystemPrompt,
+    section_user_prompt,
+)
 
 client = instructor.patch(openai.AsyncClient())
-
-
-class Section(BaseModel):
-    title: str
-    content: str
-    subsections: List["Section"]
 
 
 class ArticleOutline(BaseModel):
@@ -116,14 +121,6 @@ def chunks(lst, n):
         yield lst[i : i + n]
 
 
-class SectionUserPromptArgs(BaseModel):
-    article_text: str
-    sections: List[Section]
-    script_so_far: List[TranscriptLine]
-
-
-SectionSystemPrompt = Callable[[], str]
-
 SectionUserPrompt = Callable[[SectionUserPromptArgs], str]
 
 
@@ -132,11 +129,40 @@ def get_section_prompt_factories(
 ) -> Tuple[SectionUserPrompt, SectionSystemPrompt]:
     match episode_format.episode_format_type:
         case EpisodeFormatType.dialogue:
-            return dialogue_section_user_prompt, dialogue_section_system_prompt
+            return section_user_prompt, DialogueSectionSystemPrompt(
+                speakers=("jake", "emily")
+            )
         case EpisodeFormatType.monologue:
-            return monologue_section_user_prompt, monologue_section_system_prompt
+            return section_user_prompt, MonologueSectionSystemPrompt(speaker="jake")
+
+        case EpisodeFormatType.interview:
+            return section_user_prompt, InterviewSectionSystemPrompt(
+                interviewee="emily", interviewer="jake"
+            )
+        case EpisodeFormatType.panel:
+            return section_user_prompt, PanelDiscussionSystemPrompt(
+                speakers=("jake", "emily", "dillon")
+            )
+        case EpisodeFormatType.educational:
+            return section_user_prompt, EducationalSectionSystemPrompt(
+                speakers=("jake", "emily")
+            )
+
+        case EpisodeFormatType.storytelling:
+            return section_user_prompt, StorytellingSectionSystemPrompt(speaker="jake")
+
+        case EpisodeFormatType.news_current_events:
+            return section_user_prompt, NewsCurrentEventsSectionSystemPrompt(
+                speakers=("jake", "emily")
+            )
+
+        case EpisodeFormatType.tts:
+            return section_user_prompt, MonologueSectionSystemPrompt(speaker="jake")
+
         case _:
-            return dialogue_section_user_prompt, dialogue_section_system_prompt
+            return section_user_prompt, DialogueSectionSystemPrompt(
+                speakers=("jake", "emily")
+            )
 
 
 async def gen_main_sections(
@@ -146,10 +172,10 @@ async def gen_main_sections(
     episode_format: EpisodeFormat,
     script_so_far: List[TranscriptLine],
 ):
-    user_prompt_factory, section_prompt_factory = get_section_prompt_factories(
+    user_prompt_factory, section_system_prompt = get_section_prompt_factories(
         episode_format
     )
-    section_system_prompt = section_prompt_factory()
+    section_system_prompt = section_system_prompt.get_prompt("Listen Art")
     for section_outline in chunks(outline.sections, 2):
         section_user_prompt = user_prompt_factory(
             SectionUserPromptArgs(
@@ -203,10 +229,6 @@ async def gen_outline(text: str) -> ArticleOutline:
 
 def get_outline_system_prompt():
     return "You are a highly skilled podcast writer specializing in transforming articles into outlines for a podcast transcript writer to use. Your task is to create a detailed outline from an article for a podcast writer to utilize in their script generation. Given the complete text of an article, generate a detailed outline that includes the main title, intro, conclusion, and sections with titles brief descriptions, and any detailed subsections. Ensure the outline captures the core ideas and arguments presented in the article, organizing them logically. The longer the article, the more sections there should be in the outline. Your output must adhere strictly to a JSON format."
-
-
-def get_intro_system_prompt():
-    return """You are a highly skilled podcast writer specializing in transforming articles into engaging NPR-style conversational podcast transcripts for a podcast titled ListenArt. Your task is to create a dynamic dialogue between two speakers, Jake and Emily. They will be discussing the content of the provided blog posts in a lively, informative, and concise manner. The conversation should mimic the natural flow of a professional podcast, with each speaker offering insights, asking questions, and elaborating on the topics presented. Your output must adhere strictly to a JSON format, ensuring each line of dialogue is correctly attributed to either Jake or Emily. Please use the following JSON structure to organize the conversation, making it easy to parse and understand. Remember, the focus is on creating a natural, NPR-style conversation that both informs and engages the listener, while maintaining impeccable JSON formatting."""
 
 
 def pretty_print(script: List[TranscriptLine]):

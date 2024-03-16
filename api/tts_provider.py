@@ -17,7 +17,9 @@ class TTSProvider(abc.ABC):
         """Get the voice for the speaker specific to the provider"""
         raise NotImplementedError("This method should be overridden by subclasses")
 
+
 limiter = aiolimiter.AsyncLimiter(49, 60)
+
 
 class OpenAITTSProvider(TTSProvider):
     def __init__(self):
@@ -31,6 +33,7 @@ class OpenAITTSProvider(TTSProvider):
     )
     async def speak(self, text: str, speaker: Speaker) -> bytes:
         import openai
+
         async with limiter:
             client = openai.AsyncOpenAI()
             voice = self._get_voice_for_speaker(speaker)
@@ -47,8 +50,9 @@ class OpenAITTSProvider(TTSProvider):
             "narrator": "onyx",
             "jake": "echo",
             "emily": "nova",
+            "dillon": "onyx",
         }
-        return speaker_to_voice.get(speaker, "alloy")  # type: ignore
+        return speaker_to_voice.get(speaker, "alloy")
 
 
 def get_tts_provider(provider: Literal["openai", "aws"]):
