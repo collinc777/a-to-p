@@ -10,7 +10,6 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.orm import sessionmaker
 import sqlmodel
 
 from api.db import get_session_for_migrations
@@ -64,7 +63,7 @@ def upgrade() -> None:
 
 
 def backfill():
-    session = get_session_for_migrations()
+    session = get_session_for_migrations(bind=op.get_bind())
 
     obj_in = [
         EpisodeFormat(
