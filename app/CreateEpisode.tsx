@@ -9,10 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { graphql, readFragment } from "./graphql";
-import {
-  useReadQuery,
-  useSuspenseQuery,
-} from "@apollo/experimental-nextjs-app-support/ssr";
+import { useSuspenseQuery } from "@apollo/experimental-nextjs-app-support/ssr";
 import { usePostHog } from "posthog-js/react";
 import { Control, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,10 +22,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useApolloClient, useMutation } from "@apollo/client";
-import { RedirectType, redirect, useRouter } from "next/navigation";
-import { use, useEffect } from "react";
-import { set } from "lodash";
+import { useMutation } from "@apollo/client";
+import { useRouter } from "next/navigation";
 
 const EpisodeFormatChoiceFragment = graphql(`
   fragment EpisodeFormatFragment on EpisodeFormat {
@@ -146,6 +141,9 @@ export function CreateEpisode() {
                   <FormItem>
                     <Select
                       onValueChange={(e) => {
+                        ph.capture("episode_format_selected", {
+                          format: e,
+                        });
                         field.onChange(e);
                       }}
                     >
