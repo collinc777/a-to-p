@@ -169,7 +169,7 @@ export function CreateEpisode() {
               }}
             />
             {watchEpisodeFormat === "monologue" && (
-              <FormatConfigurationSettings
+              <MonologueFields
                 config={monologueConfig}
                 control={form.control}
               />
@@ -197,7 +197,7 @@ const monologueConfig = {
   },
 };
 
-export const FormatConfigurationSettings = ({
+export const MonologueFields = ({
   config,
   control,
 }: {
