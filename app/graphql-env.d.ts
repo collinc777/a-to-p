@@ -113,6 +113,18 @@ export type introspection = {
             "args": []
           },
           {
+            "name": "episodeFormatType",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "ENUM",
+                "name": "EpisodeFormatType",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
             "name": "index",
             "type": {
               "kind": "NON_NULL",
@@ -130,6 +142,36 @@ export type introspection = {
       {
         "kind": "SCALAR",
         "name": "UUID"
+      },
+      {
+        "kind": "ENUM",
+        "name": "EpisodeFormatType",
+        "enumValues": [
+          {
+            "name": "monologue"
+          },
+          {
+            "name": "dialogue"
+          },
+          {
+            "name": "interview"
+          },
+          {
+            "name": "panel"
+          },
+          {
+            "name": "educational"
+          },
+          {
+            "name": "storytelling"
+          },
+          {
+            "name": "news_current_events"
+          },
+          {
+            "name": "tts"
+          }
+        ]
       },
       {
         "kind": "SCALAR",
@@ -261,6 +303,10 @@ export type introspection = {
           }
         ],
         "interfaces": []
+      },
+      {
+        "kind": "SCALAR",
+        "name": "DateTime"
       },
       {
         "kind": "SCALAR",

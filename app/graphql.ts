@@ -5,6 +5,7 @@ export const graphql = initGraphQLTada<{
   introspection: introspection;
   scalars: {
     UUID: string;
+    ID: string;
   }
 }>();
 

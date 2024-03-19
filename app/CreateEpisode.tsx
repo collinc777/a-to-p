@@ -9,9 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { graphql, readFragment } from "./graphql";
-import { useSuspenseQuery } from "@apollo/experimental-nextjs-app-support/ssr";
+import {
+  useReadQuery,
+  useSuspenseQuery,
+} from "@apollo/experimental-nextjs-app-support/ssr";
 import { usePostHog } from "posthog-js/react";
-import { useForm } from "react-hook-form";
+import { Control, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -22,14 +25,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useMutation } from "@apollo/client";
+import { useApolloClient, useMutation } from "@apollo/client";
 import { RedirectType, redirect, useRouter } from "next/navigation";
-import { use } from "react";
+import { use, useEffect } from "react";
+import { set } from "lodash";
 
 const EpisodeFormatChoiceFragment = graphql(`
   fragment EpisodeFormatFragment on EpisodeFormat {
     id
     displayValue
+    episodeFormatType
   }
 `);
 
@@ -44,10 +49,24 @@ const EpisodeFormatChoicesQuery = graphql(
   [EpisodeFormatChoiceFragment]
 );
 
-const formSchema = z.object({
+const baseSchema = z.object({
   inputText: z.string(),
-  podcastFormatSelector: z.string(),
 });
+
+const monologueSchema = baseSchema.extend({
+  episodeFormat: z.literal("monologue"),
+  speakerName: z.string(),
+});
+const dialogueSchema = baseSchema.extend({
+  episodeFormat: z.literal("dialogue"),
+  firstSpeakerName: z.string(),
+  secondSpeakerName: z.string(),
+});
+const FormSchema = z.discriminatedUnion("episodeFormat", [
+  monologueSchema,
+  dialogueSchema,
+]);
+
 export function CreateEpisode() {
   const router = useRouter();
   const { data } = useSuspenseQuery(EpisodeFormatChoicesQuery);
@@ -57,9 +76,13 @@ export function CreateEpisode() {
     EpisodeFormatChoiceFragment,
     data?.episodeFormats
   );
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
   });
+  const { watch, setValue, control } = form;
+
+  const watchEpisodeFormat = watch("episodeFormat");
+
   return (
     <main className="flex-1 py-8 px-4">
       <div className="container mx-auto">
@@ -67,7 +90,13 @@ export function CreateEpisode() {
           <form
             className="w-full max-w-lg mx-auto space-y-4"
             onSubmit={form.handleSubmit(
-              async ({ inputText, podcastFormatSelector }) => {
+              async ({ inputText, episodeFormat }) => {
+                const episodeFormatId = episodeFormatChoices.find(
+                  (format) => format.episodeFormatType === episodeFormat
+                )?.id;
+                if (!episodeFormatId) {
+                  return;
+                }
                 let payload = {};
                 if (inputText.startsWith("http")) {
                   payload = { articleUrl: inputText };
@@ -78,7 +107,7 @@ export function CreateEpisode() {
                   variables: {
                     input: {
                       ...payload,
-                      episodeFormatId: podcastFormatSelector,
+                      episodeFormatId,
                     },
                   },
                 });
@@ -90,7 +119,8 @@ export function CreateEpisode() {
             <FormField
               name="inputText"
               control={form.control}
-              render={({ field }) => {
+              rules={{ required: "This field is required" }}
+              render={({ field, formState }) => {
                 return (
                   <FormItem>
                     <FormLabel>
@@ -105,7 +135,7 @@ export function CreateEpisode() {
               }}
             />
             <FormField
-              name="podcastFormatSelector"
+              name="episodeFormat"
               control={form.control}
               render={({ field }) => {
                 return (
@@ -113,9 +143,6 @@ export function CreateEpisode() {
                     <Select
                       onValueChange={(e) => {
                         field.onChange(e);
-                        ph.capture("Podcast Format Selected", {
-                          podcastFormat: e,
-                        });
                       }}
                     >
                       <FormControl>
@@ -125,7 +152,10 @@ export function CreateEpisode() {
                       </FormControl>
                       <SelectContent>
                         {episodeFormatChoices.map((format) => (
-                          <SelectItem key={format.id} value={format.id}>
+                          <SelectItem
+                            key={format.id}
+                            value={format.episodeFormatType}
+                          >
                             {format.displayValue}
                           </SelectItem>
                         ))}
@@ -136,6 +166,12 @@ export function CreateEpisode() {
                 );
               }}
             />
+            {watchEpisodeFormat === "monologue" && (
+              <FormatConfigurationSettings
+                config={monologueConfig}
+                control={form.control}
+              />
+            )}
             <FormButton />
           </form>
         </Form>
@@ -143,6 +179,39 @@ export function CreateEpisode() {
     </main>
   );
 }
+const monologueConfig = {
+  field: {
+    name: "speakerName",
+    label: "Speaker Name",
+  },
+};
+
+export const FormatConfigurationSettings = ({
+  config,
+  control,
+}: {
+  config: typeof monologueConfig;
+  control: Control<any>;
+}) => {
+  return (
+    <>
+      <FormField
+        name="speakerName"
+        control={control}
+        render={({ field }) => {
+          return (
+            <FormItem>
+              <FormLabel>{config.field.label}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          );
+        }}
+      />
+    </>
+  );
+};
 
 export const CreateEpisodeMutation = graphql(`
   mutation createEpisode($input: CreateEpisodeInput!) {
