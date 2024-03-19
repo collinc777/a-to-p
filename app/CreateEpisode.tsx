@@ -169,10 +169,7 @@ export function CreateEpisode() {
               }}
             />
             {watchEpisodeFormat === "monologue" && (
-              <MonologueFields
-                config={monologueConfig}
-                control={form.control}
-              />
+              <MonologueFields control={form.control} />
             )}
             <FormButton />
           </form>
@@ -182,28 +179,7 @@ export function CreateEpisode() {
   );
 }
 
-const monologueConfig = {
-  fields: {
-    speaker: {
-      name: {
-        name: "speakerName",
-        label: "Speaker Name",
-      },
-      voice: {
-        name: "speakerVoice",
-        label: "Speaker Voice",
-      },
-    },
-  },
-};
-
-export const MonologueFields = ({
-  config,
-  control,
-}: {
-  config: typeof monologueConfig;
-  control: Control<any>;
-}) => {
+export const MonologueFields = ({ control }: { control: Control<any> }) => {
   return (
     <>
       <FormField
@@ -212,7 +188,7 @@ export const MonologueFields = ({
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel>{config.fields.speaker.name.label}</FormLabel>
+              <FormLabel>{"Speaker Name"}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -226,7 +202,7 @@ export const MonologueFields = ({
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel>{config.fields.speaker.voice.label}</FormLabel>
+              <FormLabel>{"Speaker Voice"}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
