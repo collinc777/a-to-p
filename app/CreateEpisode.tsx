@@ -52,15 +52,19 @@ const EpisodeFormatChoicesQuery = graphql(
 const baseSchema = z.object({
   inputText: z.string(),
 });
+const speakerConfig = z.object({
+  speakerName: z.string(),
+  speakerVoice: z.string(),
+});
 
 const monologueSchema = baseSchema.extend({
   episodeFormat: z.literal("monologue"),
-  speakerName: z.string(),
+  speaker: speakerConfig,
 });
 const dialogueSchema = baseSchema.extend({
   episodeFormat: z.literal("dialogue"),
-  firstSpeakerName: z.string(),
-  secondSpeakerName: z.string(),
+  firstSpeakerName: speakerConfig,
+  secondSpeakerName: speakerConfig,
 });
 const FormSchema = z.discriminatedUnion("episodeFormat", [
   monologueSchema,
@@ -179,10 +183,19 @@ export function CreateEpisode() {
     </main>
   );
 }
+
 const monologueConfig = {
-  field: {
-    name: "speakerName",
-    label: "Speaker Name",
+  fields: {
+    speaker: {
+      name: {
+        name: "speakerName",
+        label: "Speaker Name",
+      },
+      voice: {
+        name: "speakerVoice",
+        label: "Speaker Voice",
+      },
+    },
   },
 };
 
@@ -196,12 +209,26 @@ export const FormatConfigurationSettings = ({
   return (
     <>
       <FormField
-        name="speakerName"
+        name="speaker.speakerName"
         control={control}
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel>{config.field.label}</FormLabel>
+              <FormLabel>{config.fields.speaker.name.label}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          );
+        }}
+      />
+      <FormField
+        name="speaker.speakerVoice"
+        control={control}
+        render={({ field }) => {
+          return (
+            <FormItem>
+              <FormLabel>{config.fields.speaker.voice.label}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
