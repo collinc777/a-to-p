@@ -101,48 +101,12 @@ export type introspection = {
             "args": []
           },
           {
-            "name": "createdAt",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "DateTime",
-                "ofType": null
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "lastEdited",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "DateTime",
-                "ofType": null
-              }
-            },
-            "args": []
-          },
-          {
             "name": "displayValue",
             "type": {
               "kind": "NON_NULL",
               "ofType": {
                 "kind": "SCALAR",
                 "name": "String",
-                "ofType": null
-              }
-            },
-            "args": []
-          },
-          {
-            "name": "episodeFormatType",
-            "type": {
-              "kind": "NON_NULL",
-              "ofType": {
-                "kind": "ENUM",
-                "name": "EpisodeFormatType",
                 "ofType": null
               }
             },
@@ -166,40 +130,6 @@ export type introspection = {
       {
         "kind": "SCALAR",
         "name": "UUID"
-      },
-      {
-        "kind": "SCALAR",
-        "name": "DateTime"
-      },
-      {
-        "kind": "ENUM",
-        "name": "EpisodeFormatType",
-        "enumValues": [
-          {
-            "name": "monologue"
-          },
-          {
-            "name": "dialogue"
-          },
-          {
-            "name": "interview"
-          },
-          {
-            "name": "panel"
-          },
-          {
-            "name": "educational"
-          },
-          {
-            "name": "storytelling"
-          },
-          {
-            "name": "news_current_events"
-          },
-          {
-            "name": "tts"
-          }
-        ]
       },
       {
         "kind": "SCALAR",
@@ -331,6 +261,10 @@ export type introspection = {
           }
         ],
         "interfaces": []
+      },
+      {
+        "kind": "SCALAR",
+        "name": "DateTime"
       },
       {
         "kind": "ENUM",

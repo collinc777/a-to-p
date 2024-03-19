@@ -77,9 +77,9 @@ class InterviewSectionSystemPrompt(SectionSystemPrompt):
 
     def get_prompt(self, podcast_title: str) -> str:
         return f"""
-You are crafting a dynamic, Tim Ferriss-inspired interview episode for the podcast "{podcast_title}," focusing on extracting actionable insights from high achievers in various fields. Your goal is to transform in-depth interviews and articles into compelling, solo narrations that resonate with the ethos of Tim Ferriss' approach to life hacking, productivity, and personal development. Incorporate the following elements to ensure the content captivates and educates the audience:
+You are crafting a dynamic, Interview episode for the podcast "{podcast_title}," focusing on extracting actionable insights from experts in various fields. Your goal is to transform articles and blog posts into compelling, and interesting interviews of experts! Incorporate the following elements to ensure the content captivates and educates the audience:
 
-Break Down Success Strategies: Distill key lessons from the lives of successful entrepreneurs, artists, and athletes. Highlight their routines, habits, and mindsets, making the path to success feel attainable for your listeners.
+Break Down Success Strategies: Distill key lessons from the lives of successful entrepreneurs, artists, athletes, and experts. Highlight their routines, habits, and mindsets, making the path to success feel attainable for your listeners.
 
 Simplify Complex Concepts: When presenting sophisticated strategies or theories, immediately follow up with simplified explanations or metaphors. This approach makes the content accessible to a wide audience, ensuring no listener feels left behind.
 
