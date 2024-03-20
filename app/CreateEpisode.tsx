@@ -24,6 +24,17 @@ import {
 } from "@/components/ui/form";
 import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 const EpisodeFormatChoiceFragment = graphql(`
   fragment EpisodeFormatFragment on EpisodeFormat {
@@ -203,9 +214,7 @@ export const MonologueFields = ({ control }: { control: Control<any> }) => {
           return (
             <FormItem>
               <FormLabel>{"Speaker Voice"}</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
+              <SpeakerVoiceSelect />
             </FormItem>
           );
         }}
@@ -213,6 +222,35 @@ export const MonologueFields = ({ control }: { control: Control<any> }) => {
     </>
   );
 };
+
+function SpeakerVoiceSelect() {
+  return (
+    <Dialog>
+      <Select>
+        <FormControl>
+          <DialogTrigger asChild>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Speaker Voice..." />
+            </SelectTrigger>
+          </DialogTrigger>
+        </FormControl>
+      </Select>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Select a Voice</DialogTitle>
+        </DialogHeader>
+        <div>speakername: onyx</div>
+        <div>voiceId: 123498</div>
+        <div>voice sounding type: male</div>
+        <div>provider: openai</div>
+
+        <DialogFooter>
+          <Button type="submit">Confirm Voice</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export const CreateEpisodeMutation = graphql(`
   mutation createEpisode($input: CreateEpisodeInput!) {

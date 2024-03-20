@@ -1,10 +1,11 @@
 from enum import Enum
+from pydantic import AnyUrl, HttpUrl
 import hashlib
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
 from pydantic import BaseModel, ConfigDict, computed_field, model_validator
-from sqlmodel import Field, SQLModel, Column
+from sqlmodel import AutoString, Field, SQLModel, Column
 import strawberry
 
 from api.sql_model_utils import pydantic_column_type
@@ -118,6 +119,26 @@ class UpdateEpisodeInput(SQLModel):
 
 class UpdateEpisodeDBInput(UpdateEpisodeInput):
     status: Optional[EpisodeStatus] = None
+
+
+class VoiceProvider(str, Enum):
+    openai = "openai"
+    aws = "aws"
+    playht = "playht"
+
+
+class VoiceCategory(str, Enum):
+    male = "male"
+    female = "female"
+    kid = "kid"
+
+
+class Voice(SQLModelBaseModel, table=True):
+    speaker_name: str
+    voice_category: VoiceCategory
+    provider: VoiceProvider
+    voice_provider_voice_id: str
+    sample_output: str
 
 
 class EpisodeFormat(SQLModelBaseModel, table=True):
