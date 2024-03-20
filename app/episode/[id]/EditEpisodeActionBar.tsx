@@ -24,13 +24,15 @@ export function EditEpisodeActionBar({
       <AudioPlayer url={episode.url} />
       <DownloadButton url={episode.url} />
       <Button
+        // this is temporary. I need to rate limit users
+        disabled={true}
         onClick={async () => {
           const result = await generateAudio({
             variables: { id: episode.id! },
           });
         }}
       >
-        Regenerate Audio
+        Reach out to collin.caram@gmail.com to get access to Regenerate Audio
       </Button>
       {isDirty && (
         <Alert variant={"warn"}>
