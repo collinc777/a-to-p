@@ -2,6 +2,7 @@ import {graphql} from "./graphql";
 
 export const ExtractedArticleFragment = graphql(`
     fragment ExtractedArticleFragment on ExtractedArticleType @_unmask {
+        id
         url
         title
         hostname
@@ -41,7 +42,7 @@ export const EpisodeFragment = graphql(`
     transcript {
        ...TranscriptFragment 
     }
-    extractedArticlePydantic {
+    extractedArticle {
         ...ExtractedArticleFragment
     }
   }

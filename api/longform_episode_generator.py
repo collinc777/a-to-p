@@ -9,7 +9,7 @@ from api.models import (
     EpisodeFormat,
     EpisodeFormatType,
     EpisodeStatus,
-    ExtractedArticle,
+    ExtractedArticleModel,
     Section,
     Transcript,
     TranscriptLine,
@@ -69,9 +69,8 @@ async def generate_episode_task(episode_id):
             resulting_longform = generate_episode_longform(
                 text=episode.article_text,
                 episode_format=episode.episode_format,
-                podcast_title=episode.extracted_article_pydantic.sitename
-                if episode.extracted_article_pydantic
-                and episode.extracted_article_pydantic.sitename
+                podcast_title=episode.extracted_article.sitename
+                if episode.extracted_article and episode.extracted_article.sitename
                 else "the world's greatest podcast",
             )
             messages = []
@@ -247,7 +246,7 @@ def pretty_print(script: List[TranscriptLine]):
         print(f"{line.speaker}: {line.text}\n\n")
 
 
-def extract_article(url: str) -> ExtractedArticle:
+def extract_article(url: str) -> ExtractedArticleModel:
     import trafilatura
 
     response = trafilatura.fetch_url(url)
@@ -255,5 +254,5 @@ def extract_article(url: str) -> ExtractedArticle:
         raise Exception("response is not a string")
 
     t = trafilatura.bare_extraction(response)
-    article = ExtractedArticle.model_validate(t)
+    article = ExtractedArticleModel(**t)
     return article

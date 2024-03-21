@@ -58,9 +58,9 @@ async def generate_audio(
     # save to a file
     result: BytesIO = combined.export(format="mp3")  # type: ignore
     episode.episode_hash = episode.computed_episode_hash
-    return await upload_fileobj(
-        result, "a-to-p", f"episode/{ episode.episode_hash }.mp3"
-    )  # type: ignore
+    return str(
+        await upload_fileobj(result, "a-to-p", f"episode/{ episode.episode_hash }.mp3")
+    )
 
 
 async def generate_episode_audio(episode: Episode):

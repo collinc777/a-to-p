@@ -18,7 +18,7 @@ from api.models import (
     Episode,
     EpisodeFormat as EpisodeFormatModel,
     EpisodeStatus,
-    ExtractedArticle,
+    ExtractedArticleModel,
     Transcript,
     Voice as VoiceModel,
     TranscriptLine,
@@ -33,7 +33,7 @@ async def get_context(
     return {"session": session}
 
 
-@strawberry.experimental.pydantic.type(model=ExtractedArticle, all_fields=True)
+@strawberry.experimental.pydantic.type(model=ExtractedArticleModel, all_fields=True)
 class ExtractedArticleType:
     pass
 
@@ -50,7 +50,7 @@ class TranscriptType:
 
 @strawberry.experimental.pydantic.type(model=Episode, all_fields=True)
 class EpisodeType:
-    pass
+    extracted_article: Optional[ExtractedArticleType]
 
 
 @strawberry.experimental.pydantic.type(
@@ -87,11 +87,6 @@ class Query:
         if not episode:
             raise ValueError("Episode not found")
         return EpisodeType.from_pydantic(episode)
-
-
-@strawberry.experimental.pydantic.input(ExtractedArticle, all_fields=True)
-class UpdateExtractedArticleInput:
-    pass
 
 
 @strawberry.experimental.pydantic.input(TranscriptLine, all_fields=True)
@@ -172,8 +167,8 @@ class Mutation:
             url="",
             article_text=article_text,
             title=article.title if article and article.title else "Untitled",
-            extracted_article_pydantic=article,
-            extracted_article_id=None,
+            extracted_article=article,
+            extracted_article_id=article.id if article else None,
         )
         session.add(episode)
         await session.commit()

@@ -63,19 +63,6 @@ class EpisodeStatus(str, Enum):
     not_found = "not_found"
 
 
-class ExtractedArticle(SQLModel):
-    title: str
-    text: str
-    author: Optional[str]
-    url: Optional[str]
-    hostname: Optional[str]
-    description: Optional[str]
-    sitename: Optional[str]
-    date: Optional[str]
-    # allow extra
-    model_config = ConfigDict(extra="allow")
-
-
 class ExtractedArticleModel(SQLModelBaseModel, table=True):
     title: str
     text: str
@@ -126,7 +113,6 @@ class UpdateEpisodeInput(SQLModel):
     url: Optional[str] = None
     article_text: Optional[str] = None
     transcript: Optional[Transcript] = None
-    extracted_article: Optional[ExtractedArticle] = None
     episode_hash: Optional[str] = None
 
 
@@ -172,9 +158,6 @@ class Episode(SQLModelBaseModel, table=True):
     article_text: str
     transcript: Optional[Transcript] = Field(
         sa_column=Column(pydantic_column_type(Transcript)), default=None
-    )
-    extracted_article_pydantic: Optional[ExtractedArticle] = Field(
-        sa_column=Column(pydantic_column_type(ExtractedArticle)), default=None
     )
     extracted_article: Optional[ExtractedArticleModel] = Relationship(
         back_populates="episode"
