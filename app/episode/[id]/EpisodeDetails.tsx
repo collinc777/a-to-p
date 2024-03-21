@@ -14,7 +14,7 @@ export const EpisodeDetails = ({
 }) => {
   const extractedArticle = readFragment(
     ExtractedArticleFragment,
-    episode.extractedArticlePydantic
+    episode.extractedArticle
   );
   const isEditable = episode?.status === "done";
   return (
