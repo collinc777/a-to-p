@@ -173,6 +173,7 @@ class Mutation:
             article_text=article_text,
             title=article.title if article and article.title else "Untitled",
             extracted_article_pydantic=article,
+            extracted_article_id=None,
         )
         session.add(episode)
         await session.commit()
