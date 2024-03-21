@@ -11,7 +11,7 @@ import {
 import { graphql, readFragment } from "./graphql";
 import { useSuspenseQuery } from "@apollo/experimental-nextjs-app-support/ssr";
 import { usePostHog } from "posthog-js/react";
-import { useForm } from "react-hook-form";
+import { Control, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -23,13 +23,24 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useMutation } from "@apollo/client";
-import { RedirectType, redirect, useRouter } from "next/navigation";
-import { use } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 const EpisodeFormatChoiceFragment = graphql(`
   fragment EpisodeFormatFragment on EpisodeFormat {
     id
     displayValue
+    episodeFormatType
   }
 `);
 
@@ -44,11 +55,29 @@ const EpisodeFormatChoicesQuery = graphql(
   [EpisodeFormatChoiceFragment]
 );
 
-const formSchema = z.object({
+const baseSchema = z.object({
   inputText: z.string(),
-  podcastFormatSelector: z.string(),
 });
-export function CreateEpisode() {
+const speakerConfig = z.object({
+  speakerName: z.string(),
+  speakerVoice: z.string(),
+});
+
+const monologueSchema = baseSchema.extend({
+  episodeFormat: z.literal("monologue"),
+  speaker: speakerConfig,
+});
+const dialogueSchema = baseSchema.extend({
+  episodeFormat: z.literal("dialogue"),
+  firstSpeakerName: speakerConfig,
+  secondSpeakerName: speakerConfig,
+});
+const FormSchema = z.discriminatedUnion("episodeFormat", [
+  monologueSchema,
+  dialogueSchema,
+]);
+
+export function CreateEpisodeV2() {
   const router = useRouter();
   const { data } = useSuspenseQuery(EpisodeFormatChoicesQuery);
   const [createEpisode] = useMutation(CreateEpisodeMutation);
@@ -57,9 +86,13 @@ export function CreateEpisode() {
     EpisodeFormatChoiceFragment,
     data?.episodeFormats
   );
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
   });
+  const { watch, setValue, control } = form;
+
+  const watchEpisodeFormat = watch("episodeFormat");
+
   return (
     <main className="flex-1 py-8 px-4">
       <div className="container mx-auto">
@@ -67,7 +100,13 @@ export function CreateEpisode() {
           <form
             className="w-full max-w-lg mx-auto space-y-4"
             onSubmit={form.handleSubmit(
-              async ({ inputText, podcastFormatSelector }) => {
+              async ({ inputText, episodeFormat }) => {
+                const episodeFormatId = episodeFormatChoices.find(
+                  (format) => format.episodeFormatType === episodeFormat
+                )?.id;
+                if (!episodeFormatId) {
+                  return;
+                }
                 let payload = {};
                 if (inputText.startsWith("http")) {
                   payload = { articleUrl: inputText };
@@ -78,7 +117,7 @@ export function CreateEpisode() {
                   variables: {
                     input: {
                       ...payload,
-                      episodeFormatId: podcastFormatSelector,
+                      episodeFormatId,
                     },
                   },
                 });
@@ -90,7 +129,8 @@ export function CreateEpisode() {
             <FormField
               name="inputText"
               control={form.control}
-              render={({ field }) => {
+              rules={{ required: "This field is required" }}
+              render={({ field, formState }) => {
                 return (
                   <FormItem>
                     <FormLabel>
@@ -105,17 +145,17 @@ export function CreateEpisode() {
               }}
             />
             <FormField
-              name="podcastFormatSelector"
+              name="episodeFormat"
               control={form.control}
               render={({ field }) => {
                 return (
                   <FormItem>
                     <Select
                       onValueChange={(e) => {
-                        field.onChange(e);
-                        ph.capture("Podcast Format Selected", {
-                          podcastFormat: e,
+                        ph.capture("episode_format_selected", {
+                          format: e,
                         });
+                        field.onChange(e);
                       }}
                     >
                       <FormControl>
@@ -125,7 +165,10 @@ export function CreateEpisode() {
                       </FormControl>
                       <SelectContent>
                         {episodeFormatChoices.map((format) => (
-                          <SelectItem key={format.id} value={format.id}>
+                          <SelectItem
+                            key={format.id}
+                            value={format.episodeFormatType}
+                          >
                             {format.displayValue}
                           </SelectItem>
                         ))}
@@ -136,11 +179,76 @@ export function CreateEpisode() {
                 );
               }}
             />
+            {watchEpisodeFormat === "monologue" && (
+              <MonologueFields control={form.control} />
+            )}
             <FormButton />
           </form>
         </Form>
       </div>
     </main>
+  );
+}
+
+export const MonologueFields = ({ control }: { control: Control<any> }) => {
+  return (
+    <>
+      <FormField
+        name="speaker.speakerName"
+        control={control}
+        render={({ field }) => {
+          return (
+            <FormItem>
+              <FormLabel>{"Speaker Name"}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+            </FormItem>
+          );
+        }}
+      />
+      <FormField
+        name="speaker.speakerVoice"
+        control={control}
+        render={({ field }) => {
+          return (
+            <FormItem>
+              <FormLabel>{"Speaker Voice"}</FormLabel>
+              <SpeakerVoiceSelect />
+            </FormItem>
+          );
+        }}
+      />
+    </>
+  );
+};
+
+function SpeakerVoiceSelect() {
+  return (
+    <Dialog>
+      <Select>
+        <FormControl>
+          <DialogTrigger asChild>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Speaker Voice..." />
+            </SelectTrigger>
+          </DialogTrigger>
+        </FormControl>
+      </Select>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Select a Voice</DialogTitle>
+        </DialogHeader>
+        <div>speakername: onyx</div>
+        <div>voiceId: 123498</div>
+        <div>voice sounding type: male</div>
+        <div>provider: openai</div>
+
+        <DialogFooter>
+          <Button type="submit">Confirm Voice</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
