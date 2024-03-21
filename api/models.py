@@ -1,17 +1,30 @@
 from enum import Enum
-from pydantic import AnyUrl, HttpUrl
 import hashlib
 from typing import Literal, List, Optional
 from datetime import datetime
 import uuid
 from pydantic import BaseModel, ConfigDict, computed_field, model_validator
-from sqlmodel import AutoString, Field, SQLModel, Column
+from sqlmodel import Field, SQLModel, Column
 import strawberry
 
 from api.sql_model_utils import pydantic_column_type
 
 
 Speaker = Literal["narrator", "jake", "emily", "dillon"]
+
+
+class SQLModelBaseModel(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default=datetime.utcnow(), nullable=True)
+    last_edited: datetime = Field(default_factory=datetime.utcnow, nullable=True)
+
+
+def Relationship(*, back_populates: str):
+    from sqlmodel import Relationship as SQLModelRelationship
+
+    return SQLModelRelationship(
+        back_populates=back_populates, sa_relationship_kwargs={"lazy": "selectin"}
+    )
 
 
 class CreateEpisodeRequest(BaseModel):
@@ -63,6 +76,20 @@ class ExtractedArticle(SQLModel):
     model_config = ConfigDict(extra="allow")
 
 
+class ExtractedArticleModel(SQLModelBaseModel, table=True):
+    title: str
+    text: str
+    author: Optional[str]
+    url: Optional[str]
+    hostname: Optional[str]
+    description: Optional[str]
+    sitename: Optional[str]
+    date: Optional[str]
+    episode: Optional["Episode"] = Relationship(back_populates="extracted_article")
+    # allow extra
+    model_config = ConfigDict(extra="allow")
+
+
 class TranscriptLine(BaseModel):
     """A line of the transcript"""
 
@@ -92,20 +119,6 @@ class Transcript(BaseModel):
     """The transcript of the podcast episode"""
 
     transcript_lines: List[TranscriptLine]
-
-
-class SQLModelBaseModel(SQLModel):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default=datetime.utcnow(), nullable=True)
-    last_edited: datetime = Field(default_factory=datetime.utcnow, nullable=True)
-
-
-def Relationship(*, back_populates: str):
-    from sqlmodel import Relationship as SQLModelRelationship
-
-    return SQLModelRelationship(
-        back_populates=back_populates, sa_relationship_kwargs={"lazy": "selectin"}
-    )
 
 
 class UpdateEpisodeInput(SQLModel):
@@ -162,6 +175,12 @@ class Episode(SQLModelBaseModel, table=True):
     )
     extracted_article_pydantic: Optional[ExtractedArticle] = Field(
         sa_column=Column(pydantic_column_type(ExtractedArticle)), default=None
+    )
+    extracted_article: Optional[ExtractedArticleModel] = Relationship(
+        back_populates="episode"
+    )
+    extracted_article_id: Optional[uuid.UUID] = Field(
+        foreign_key="extractedarticlemodel.id", nullable=True
     )
     episode_hash: Optional[str] = None
 

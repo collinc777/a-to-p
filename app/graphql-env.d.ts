@@ -448,6 +448,15 @@ export type introspection = {
             "args": []
           },
           {
+            "name": "extractedArticleId",
+            "type": {
+              "kind": "SCALAR",
+              "name": "UUID",
+              "ofType": null
+            },
+            "args": []
+          },
+          {
             "name": "episodeHash",
             "type": {
               "kind": "SCALAR",
