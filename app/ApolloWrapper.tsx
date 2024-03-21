@@ -12,7 +12,7 @@ import { removeTypenameFromVariables } from "@apollo/client/link/remove-typename
 
 const removeTypenameLink = removeTypenameFromVariables();
 
-const url = `${process.env.NEXT_PUBLIC_BACKEND_HOST}`;
+// const url = `${process.env.NEXT_PUBLIC_BACKEND_HOST}`;
 // have a function to create a client for you
 function makeClient() {
   const httpLink = new HttpLink({

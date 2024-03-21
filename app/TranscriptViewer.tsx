@@ -1,6 +1,5 @@
 import { FragmentOf } from "gql.tada";
 import { TranscriptFragment } from "./queries";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TranscriptLoading } from "./episode/[id]/EpisodeDetails";
 import { graphql } from "./graphql";
 
@@ -38,6 +37,7 @@ function TranscriptLine({
   line,
   idx,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   line: any;
   idx: number | null | undefined;
 }) {

@@ -1,5 +1,4 @@
 "use server";
-import { RedirectType, redirect } from "next/navigation";
 import { VariablesOf, graphql } from "./graphql";
 import { EpisodeFragment } from "./queries";
 import { getClient } from "./ApolloClient";

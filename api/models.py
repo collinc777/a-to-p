@@ -160,7 +160,7 @@ class Episode(SQLModelBaseModel, table=True):
     transcript: Optional[Transcript] = Field(
         sa_column=Column(pydantic_column_type(Transcript)), default=None
     )
-    extracted_article: Optional[ExtractedArticle] = Field(
+    extracted_article_pydantic: Optional[ExtractedArticle] = Field(
         sa_column=Column(pydantic_column_type(ExtractedArticle)), default=None
     )
     episode_hash: Optional[str] = None

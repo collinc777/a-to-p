@@ -27,14 +27,12 @@ import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 
 const EpisodeFormatChoiceFragment = graphql(`
   fragment EpisodeFormatFragment on EpisodeFormat {
@@ -89,7 +87,7 @@ export function CreateEpisodeV2() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
-  const { watch, setValue, control } = form;
+  const { watch } = form;
 
   const watchEpisodeFormat = watch("episodeFormat");
 
@@ -130,7 +128,7 @@ export function CreateEpisodeV2() {
               name="inputText"
               control={form.control}
               rules={{ required: "This field is required" }}
-              render={({ field, formState }) => {
+              render={({ field }) => {
                 return (
                   <FormItem>
                     <FormLabel>
@@ -190,6 +188,7 @@ export function CreateEpisodeV2() {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const MonologueFields = ({ control }: { control: Control<any> }) => {
   return (
     <>
@@ -210,7 +209,8 @@ export const MonologueFields = ({ control }: { control: Control<any> }) => {
       <FormField
         name="speaker.speakerVoice"
         control={control}
-        render={({ field }) => {
+        // eslint-disable-next-line no-empty-pattern
+        render={({}) => {
           return (
             <FormItem>
               <FormLabel>{"Speaker Voice"}</FormLabel>

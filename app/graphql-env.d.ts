@@ -439,7 +439,7 @@ export type introspection = {
             "args": []
           },
           {
-            "name": "extractedArticle",
+            "name": "extractedArticlePydantic",
             "type": {
               "kind": "OBJECT",
               "name": "ExtractedArticleType",

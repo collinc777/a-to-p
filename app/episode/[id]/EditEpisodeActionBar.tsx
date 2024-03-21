@@ -27,7 +27,7 @@ export function EditEpisodeActionBar({
         // this is temporary. I need to rate limit users
         disabled={true}
         onClick={async () => {
-          const result = await generateAudio({
+          await generateAudio({
             variables: { id: episode.id! },
           });
         }}

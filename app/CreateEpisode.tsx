@@ -23,8 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useMutation } from "@apollo/client";
-import { RedirectType, redirect, useRouter } from "next/navigation";
-import { use } from "react";
+import { useRouter } from "next/navigation";
 
 const EpisodeFormatChoiceFragment = graphql(`
   fragment EpisodeFormatFragment on EpisodeFormat {

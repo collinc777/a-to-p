@@ -1,9 +1,4 @@
-import {
-  S3Client,
-  ListBucketsCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
-import { NextApiHandler, NextApiRequest } from "next";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest } from "next/server";
 // set runtime to edge
 export const runtime = "edge";

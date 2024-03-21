@@ -1,4 +1,3 @@
-import { exportTraceState } from "next/dist/trace";
 import {graphql} from "./graphql";
 
 export const ExtractedArticleFragment = graphql(`
@@ -42,7 +41,7 @@ export const EpisodeFragment = graphql(`
     transcript {
        ...TranscriptFragment 
     }
-    extractedArticle {
+    extractedArticlePydantic {
         ...ExtractedArticleFragment
     }
   }

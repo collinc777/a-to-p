@@ -6,8 +6,6 @@ import { ResultOf, readFragment } from "@/app/graphql";
 import { EpisodeFragment, ExtractedArticleFragment } from "@/app/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { graphql } from "@/app/graphql";
-import { useMutation } from "@apollo/client";
-import { revalidatePath } from "next/cache";
 
 export const EpisodeDetails = ({
   episode,
@@ -16,7 +14,7 @@ export const EpisodeDetails = ({
 }) => {
   const extractedArticle = readFragment(
     ExtractedArticleFragment,
-    episode.extractedArticle
+    episode.extractedArticlePydantic
   );
   const isEditable = episode?.status === "done";
   return (
