@@ -54,6 +54,24 @@ export type introspection = {
             "args": []
           },
           {
+            "name": "voices",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "Voice",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            "args": []
+          },
+          {
             "name": "episode",
             "type": {
               "kind": "NON_NULL",
@@ -176,6 +194,143 @@ export type introspection = {
       {
         "kind": "SCALAR",
         "name": "Int"
+      },
+      {
+        "kind": "OBJECT",
+        "name": "Voice",
+        "fields": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "UUID",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "createdAt",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "lastEdited",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "DateTime",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "speakerName",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "voiceCategory",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "ENUM",
+                "name": "VoiceCategory",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "provider",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "ENUM",
+                "name": "VoiceProvider",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "voiceProviderVoiceId",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "args": []
+          },
+          {
+            "name": "sampleOutput",
+            "type": {
+              "kind": "NON_NULL",
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "args": []
+          }
+        ],
+        "interfaces": []
+      },
+      {
+        "kind": "SCALAR",
+        "name": "DateTime"
+      },
+      {
+        "kind": "ENUM",
+        "name": "VoiceCategory",
+        "enumValues": [
+          {
+            "name": "male"
+          },
+          {
+            "name": "female"
+          },
+          {
+            "name": "kid"
+          }
+        ]
+      },
+      {
+        "kind": "ENUM",
+        "name": "VoiceProvider",
+        "enumValues": [
+          {
+            "name": "openai"
+          },
+          {
+            "name": "aws"
+          },
+          {
+            "name": "playht"
+          }
+        ]
       },
       {
         "kind": "OBJECT",
@@ -303,14 +458,6 @@ export type introspection = {
           }
         ],
         "interfaces": []
-      },
-      {
-        "kind": "SCALAR",
-        "name": "DateTime"
-      },
-      {
-        "kind": "SCALAR",
-        "name": "DateTime"
       },
       {
         "kind": "ENUM",

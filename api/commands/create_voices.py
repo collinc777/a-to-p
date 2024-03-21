@@ -1,4 +1,5 @@
 from io import BytesIO
+from typing import Literal
 
 from pydantic import AnyUrl, HttpUrl
 from api.audio_generator import upload_fileobj
@@ -19,18 +20,28 @@ async def run():
             speaker_name="echo",
             voice_category=VoiceCategory.male,
             voice_provider_voice_id="echo",
-            sample_output=await open_ai_speak_and_upload(),
+            sample_output=await open_ai_speak_and_upload("echo"),
         )
+        #   voice = Voice(
+        #     id=voice_id,
+        #     provider=VoiceProvider.openai,
+        #     speaker_name="alloy",
+        #     voice_category=VoiceCategory.male,
+        #     voice_provider_voice_id="alloy",
+        #     sample_output=await open_ai_speak_and_upload("alloy"),
+        # )
         session.add(voice)
         await session.commit()
 
 
-async def open_ai_speak_and_upload() -> str:
+async def open_ai_speak_and_upload(
+    voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+) -> str:
     open_ai_client = openai.AsyncOpenAI()
     response = await open_ai_client.audio.speech.create(
         model="tts-1",
         input=sample_string,
-        voice="echo",
+        voice=voice,
     )
     result = await response.aread()
     audio_url = await upload_fileobj(

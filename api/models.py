@@ -121,12 +121,14 @@ class UpdateEpisodeDBInput(UpdateEpisodeInput):
     status: Optional[EpisodeStatus] = None
 
 
+@strawberry.enum
 class VoiceProvider(str, Enum):
     openai = "openai"
     aws = "aws"
     playht = "playht"
 
 
+@strawberry.enum
 class VoiceCategory(str, Enum):
     male = "male"
     female = "female"
