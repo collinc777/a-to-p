@@ -58,11 +58,6 @@ class OpenAITTSProvider(TTSProvider):
 
 
 class PlayHtTTSProvider(TTSProvider):
-    client = phtClient(
-        user_id=get_settings().playht_user_id,  # type: ignore
-        api_key=get_settings().playht_secret_key,  # type: ignore
-    )
-
     @classmethod
     def _get_voice_for_speaker(cls, speaker: Speaker) -> str:
         return ""
@@ -73,7 +68,11 @@ class PlayHtTTSProvider(TTSProvider):
         stop=stop_after_attempt(5),
     )
     async def speak(cls, text: str, speaker: Speaker):
-        result = cls.client.tts(
+        client = phtClient(
+            user_id=get_settings().playht_user_id,  # type: ignore
+            api_key=get_settings().playht_secret_key,  # type: ignore
+        )
+        result = client.tts(
             text=text,
             options=TTSOptions(
                 voice="s3://voice-cloning-zero-shot/028a32d4-6a79-4ca3-a303-d6559843114b/chris/manifest.json",

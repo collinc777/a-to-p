@@ -6,7 +6,7 @@ from fastapi import Depends
 from strawberry.fastapi import GraphQLRouter
 from strawberry.types import Info
 from sqlalchemy.ext.asyncio import AsyncSession
-from api.crud import crud_episode, crud_episode_format
+from api.crud import crud_episode, crud_episode_format, crud_voice
 
 from api.db import get_session
 from api.longform_episode_generator import (
@@ -20,6 +20,7 @@ from api.models import (
     EpisodeStatus,
     ExtractedArticle,
     Transcript,
+    Voice as VoiceModel,
     TranscriptLine,
     UpdateEpisodeDBInput,
     UpdateEpisodeInput as UpdateEpisodeInputPydantic,
@@ -53,9 +54,15 @@ class EpisodeType:
 
 
 @strawberry.experimental.pydantic.type(
-    model=EpisodeFormatModel, fields=["id", "display_value", "index"]
+    model=EpisodeFormatModel,
+    fields=["id", "display_value", "index", "episode_format_type"],
 )
 class EpisodeFormat:
+    pass
+
+
+@strawberry.experimental.pydantic.type(model=VoiceModel, all_fields=True)
+class Voice:
     pass
 
 
@@ -68,6 +75,10 @@ class Query:
     @strawberry.field
     async def episode_formats(self, info: Info) -> List[EpisodeFormat]:
         return await crud_episode_format.get_all(info.context["session"])  # type: ignore
+
+    @strawberry.field
+    async def voices(self, info: Info) -> List[Voice]:
+        return await crud_voice.get_all(info.context["session"])  # type: ignore
 
     @strawberry.field
     async def episode(self, id: str, info: Info) -> EpisodeType:

@@ -1,6 +1,8 @@
 from io import BytesIO
 import aioboto3
 from typing import Tuple
+
+from pydantic import HttpUrl, AnyUrl
 from api.models import Episode, TranscriptLine
 from api.settings import get_settings
 from api.tts_provider import TTSProvider, get_tts_provider
@@ -23,7 +25,7 @@ async def generate_audio_for_line(
     audio_url = await upload_fileobj(
         BytesIO(audio), "a-to-p", f"line/{ line.computed_line_hash }.wav"
     )  # type: ignore
-    line.audio_url = audio_url
+    line.audio_url = str(audio_url)
     line.line_hash = line.computed_line_hash
     return line, audio
 
@@ -69,7 +71,7 @@ async def generate_episode_audio(episode: Episode):
     return await generate_audio(episode=episode, provider=provider)
 
 
-async def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> str:
+async def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> HttpUrl:
     settings = get_settings()
     session = aioboto3.Session()
     async with session.client(
@@ -88,7 +90,7 @@ async def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> str:
         # url should be https://646290bc1d3bb40acc9629e92c0b0bf5.r2.cloudflarestorage.com/a-to-p/episode.mp3
         if not settings.bucket_public_url:
             raise Exception("bucket_public_url not set")
-        return settings.bucket_public_url + "/" + key
+        return AnyUrl(url=settings.bucket_public_url + "/" + key)
 
 
 async def get_file_obj(url: str) -> bytes:
