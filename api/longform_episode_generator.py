@@ -69,8 +69,9 @@ async def generate_episode_task(episode_id):
             resulting_longform = generate_episode_longform(
                 text=episode.article_text,
                 episode_format=episode.episode_format,
-                podcast_title=episode.extracted_article.sitename
-                if episode.extracted_article and episode.extracted_article.sitename
+                podcast_title=episode.extracted_article_pydantic.sitename
+                if episode.extracted_article_pydantic
+                and episode.extracted_article_pydantic.sitename
                 else "the world's greatest podcast",
             )
             messages = []

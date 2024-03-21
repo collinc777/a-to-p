@@ -1,7 +1,6 @@
 from io import BytesIO
 from typing import Literal
 
-from pydantic import AnyUrl, HttpUrl
 from api.audio_generator import upload_fileobj
 from api.models import Voice, VoiceCategory, VoiceProvider
 import openai
