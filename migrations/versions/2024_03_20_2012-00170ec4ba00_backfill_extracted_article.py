@@ -37,9 +37,12 @@ def upgrade() -> None:
         if not episode.extracted_article_pydantic:
             continue
         print(episode)
-        session.add(
-            ExtractedArticleModel(**episode.extracted_article_pydantic.model_dump())
+        extracted_article = ExtractedArticleModel(
+            **episode.extracted_article_pydantic.model_dump()
         )
+        session.add(extracted_article)
+        episode.extracted_article = extracted_article
+        session.add(episode)
 
     session.commit()
 
