@@ -1935,6 +1935,25 @@ typing-extensions = ">=4.7,<5"
 datalib = ["numpy (>=1)", "pandas (>=1.2.3)", "pandas-stubs (>=1.1.0.11)"]
 
 [[package]]
+name = "openapi-client"
+version = "1.0.0"
+description = "Eden AI"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "openapi-output2"
+
+[[package]]
 name = "packaging"
 version = "23.2"
 description = "Core utilities for Python packages"
@@ -4266,4 +4285,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "e3e6e3650a36870aeec9328c55afb91f28796ffc09e678108b4c8fb418bf76ee"
+content-hash = "a7bc2ce3e44e55bec6a9635433731ea4bb4a07e88a56342a79eacce681b2caa7"

@@ -1,6 +1,6 @@
 from io import BytesIO
 import aioboto3
-from typing import Dict, Tuple
+from typing import IO, Any, Dict, Tuple
 
 from pydantic import HttpUrl, AnyUrl
 from api.models import Episode, Speaker, TranscriptLine
@@ -35,7 +35,7 @@ async def generate_audio_for_line(
     )
     # save to a file
     audio_url = await upload_fileobj(
-        BytesIO(audio), "a-to-p", f"line/{ line.computed_line_hash }.wav"
+        BytesIO(audio), "a-to-p", f"line/{ line.computed_line_hash }.mp3"
     )  # type: ignore
     line.audio_url = str(audio_url)
     line.line_hash = line.computed_line_hash
@@ -81,7 +81,7 @@ async def generate_episode_audio(episode: Episode):
     return await generate_audio(episode=episode)
 
 
-async def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> HttpUrl:
+async def upload_fileobj(fileobj: IO[Any], bucket: str, key: str) -> HttpUrl:
     settings = get_settings()
     session = aioboto3.Session()
     async with session.client(
