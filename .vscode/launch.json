@@ -6,7 +6,7 @@
 	"configurations": [
 		{
 			"name": "Python: Debug Tests",
-			"type": "python",
+			"type": "debugpy",
 			"request": "launch",
 			"program": "${file}",
 			"purpose": [
@@ -17,7 +17,7 @@
 		},
 		{
 			"name": "Python: FastAPI",
-			"type": "python",
+			"type": "debugpy",
 			"request": "launch",
 			"module": "uvicorn",
 			"args": [
@@ -26,6 +26,14 @@
 			],
 			"jinja": true,
 			"justMyCode": false
+		},
+		{
+			"name": "Python Debug file",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${file}",
+			"justMyCode": false,
+			"console": "integratedTerminal"
 		}
 	]
 }
