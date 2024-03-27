@@ -1,5 +1,4 @@
 from typing import AsyncGenerator, AsyncIterator
-from alembic import op
 from fastapi.concurrency import asynccontextmanager
 from sqlalchemy import Connection
 from sqlalchemy.orm import Session

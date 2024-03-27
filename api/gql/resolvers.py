@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional
+from typing import List, Optional
 import uuid
 import strawberry
 

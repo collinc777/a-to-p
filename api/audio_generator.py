@@ -1,25 +1,37 @@
 from io import BytesIO
 import aioboto3
-from typing import Tuple
+from typing import Dict, Tuple
 
 from pydantic import HttpUrl, AnyUrl
-from api.models import Episode, TranscriptLine
+from api.models import Episode, Speaker, TranscriptLine
 from api.settings import get_settings
-from api.tts_provider import TTSProvider, get_tts_provider
+from api.tts_provider import OpenAITTSProvider, OpenAIVoice
+
+
+def get_voice_for_speaker(speaker: Speaker) -> OpenAIVoice:
+    speaker_to_voice: Dict[str, OpenAIVoice] = {
+        "narrator": "onyx",
+        "jake": "echo",
+        "emily": "nova",
+        "dillon": "onyx",
+    }
+    return speaker_to_voice.get(speaker, "alloy")
 
 
 async def generate_audio_for_line(
     *,
     line: TranscriptLine,
-    provider: TTSProvider,
 ) -> Tuple[TranscriptLine, bytes]:
     if line.audio_url_id == line.computed_line_hash and line.audio_url:
         audio_bytes = await get_file_obj(line.audio_url)
         return line, audio_bytes
     # use tts to generate audio
-    audio = await provider.speak(
+    open_ai_tts_provider = OpenAITTSProvider()
+    audio = await open_ai_tts_provider.speak(
         text=line.text,
-        speaker=line.speaker.lower(),  # type: ignore
+        voice=get_voice_for_speaker(
+            line.speaker  # type: ignore
+        ),
     )
     # save to a file
     audio_url = await upload_fileobj(
@@ -33,13 +45,12 @@ async def generate_audio_for_line(
 async def generate_audio(
     *,
     episode: Episode,
-    provider: TTSProvider,
 ) -> str:
     # use tts to generate audio
     if not episode.transcript:
         raise ValueError("Transcript not found")
     lines = episode.transcript.transcript_lines
-    tasks = [generate_audio_for_line(line=line, provider=provider) for line in lines]
+    tasks = [generate_audio_for_line(line=line) for line in lines]
     import asyncio
     import io
 
@@ -67,15 +78,14 @@ async def generate_episode_audio(episode: Episode):
     # update episode to processing
     if episode.transcript is None:
         raise ValueError("Transcript not found")
-    provider = get_tts_provider("openai")
-    return await generate_audio(episode=episode, provider=provider)
+    return await generate_audio(episode=episode)
 
 
 async def upload_fileobj(fileobj: BytesIO, bucket: str, key: str) -> HttpUrl:
     settings = get_settings()
     session = aioboto3.Session()
     async with session.client(
-        "s3",
+        "s3",  # type: ignore
         endpoint_url=settings.bucket_url,
         aws_access_key_id=settings.bucket_access_key_id,
         aws_secret_access_key=settings.bucket_secret_access_key,

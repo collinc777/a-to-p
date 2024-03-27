@@ -54,6 +54,6 @@ def downgrade() -> None:
     # ### end Alembic commands ###
     session = get_session_for_migrations(bind=op.get_bind())
     result = sqlmodel.delete(ExtractedArticleModel).where(
-        ExtractedArticleModel.id != None
+        ExtractedArticleModel.id != None  # type: ignore
     )
     session.execute(result)
