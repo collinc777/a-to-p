@@ -33,6 +33,7 @@
 			"request": "launch",
 			"program": "${file}",
 			"justMyCode": false,
+			"envFile": "${workspaceFolder}/.env",
 			"console": "integratedTerminal"
 		}
 	]

@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     playht_user_id: Optional[str] = None
     playht_secret_key: Optional[str] = None
     stage: Optional[str] = None
+    edenai_api_key: Optional[str] = None
 
 
 @lru_cache()

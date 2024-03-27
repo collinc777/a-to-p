@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{ include = "api" }]
 
 [tool.poetry.dependencies]
-eden-ai-client = { path = "./eden-ai-client" }
+openapi_client = { path = "./openapi-output2" }
 python = "^3.11"
 fastapi = "^0.108.0"
 pydantic-settings = "^2.1.0"
@@ -41,7 +41,7 @@ pre-commit = "^3.7.0"
 openapi-python-client = "^0.19.0"
 
 [tool.ruff]
-exclude = ["migrations"]
+exclude = ["migrations", "openapi-output2"]
 
 [build-system]
 requires = ["poetry-core"]
