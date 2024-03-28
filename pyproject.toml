@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{ include = "api" }]
 
 [tool.poetry.dependencies]
-openapi_client = { path = "./openapi-output2" }
+openapi_client = { path = "./openapi-output" }
 python = "^3.11"
 fastapi = "^0.108.0"
 pydantic-settings = "^2.1.0"
@@ -32,6 +32,7 @@ aioboto3 = "^12.3.0"
 bpython = "^0.24"
 pyht = "^0.0.26"
 types-aioboto3 = { extras = ["essential"], version = "^12.3.0" }
+aiohttp-retry = "^2.8.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.23.3"
@@ -40,7 +41,7 @@ ruff = "^0.3.2"
 pre-commit = "^3.7.0"
 
 [tool.ruff]
-exclude = ["migrations", "openapi-output2"]
+exclude = ["migrations", "openapi-output"]
 
 [build-system]
 requires = ["poetry-core"]

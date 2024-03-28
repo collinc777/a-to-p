@@ -22,7 +22,7 @@ class OpenAITTSProvider:
 
     @classmethod
     @retry(
-        wait=wait_exponential(multiplier=1, max=60),
+        wait=wait_exponential(multiplier=1, max=100),
         stop=stop_after_attempt(5),
     )
     async def speak(cls, text: str, voice: OpenAIVoice):
@@ -32,7 +32,7 @@ class OpenAITTSProvider:
         configuration = Configuration(
             access_token=get_settings().edenai_api_key,
         )
-        with ApiClient(configuration) as api_client:
+        async with ApiClient(configuration) as api_client:
             api_instance = TextToSpeechApi(api_client)
             body = AudiotextToSpeechTextToSpeechRequest(
                 providers="openai",
@@ -40,7 +40,7 @@ class OpenAITTSProvider:
                 audio_format="mp3",
                 settings=json.dumps({"openai": f"en_{voice}"}),
             )
-            api_response = api_instance.audio_audio_text_to_speech_create(body)
+            api_response = await api_instance.audio_audio_text_to_speech_create(body)
             api_response.openai
             if not api_response.openai:
                 raise Exception("No response from EdenAI")
